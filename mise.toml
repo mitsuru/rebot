@@ -1,0 +1,6 @@
+[tools]
+bun = "1.3.9"
+
+[tasks.compile]
+description = "Compile rebot into a single binary"
+run = "bun run build"
