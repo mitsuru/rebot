@@ -24,3 +24,43 @@ test("runOpencodePrompt creates a session and returns assistant text", async () 
   expect(result.markdown).toBe("assistant output")
   expect(calls).toEqual(["create:rebot", "prompt:session-1:hello", "close"])
 })
+
+test("runOpencodePrompt surfaces session creation SDK errors and closes the server", async () => {
+  const calls: string[] = []
+
+  await expect(
+    runOpencodePrompt("hello", {
+      create: async () => ({
+        client: {
+          session: {
+            create: async () => ({ data: undefined, error: { message: "create failed" } }),
+            prompt: async () => ({ data: { parts: [] } }),
+          },
+        },
+        server: { close: () => calls.push("close") },
+      }),
+    }),
+  ).rejects.toThrow(/Failed to create opencode session.*create failed/)
+
+  expect(calls).toEqual(["close"])
+})
+
+test("runOpencodePrompt surfaces prompt SDK errors and closes the server", async () => {
+  const calls: string[] = []
+
+  await expect(
+    runOpencodePrompt("hello", {
+      create: async () => ({
+        client: {
+          session: {
+            create: async () => ({ data: { id: "session-1" } }),
+            prompt: async () => ({ data: undefined, error: { message: "prompt failed" } }),
+          },
+        },
+        server: { close: () => calls.push("close") },
+      }),
+    }),
+  ).rejects.toThrow(/Failed to run opencode prompt.*prompt failed/)
+
+  expect(calls).toEqual(["close"])
+})

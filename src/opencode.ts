@@ -9,12 +9,24 @@ interface TextPart {
 interface PromptResponse {
   data?: {
     parts?: TextPart[]
-  }
+  } | undefined
+  error?: SdkError
+}
+
+interface CreateSessionResponse {
+  data?: {
+    id?: string
+  } | undefined
+  error?: SdkError
+}
+
+interface SdkError {
+  message?: string
 }
 
 interface SessionClient {
   session: {
-    create(input: { body: { title: string } }): Promise<{ data: { id: string } }>
+    create(input: { body: { title: string } }): Promise<CreateSessionResponse>
     prompt(input: { path: { id: string }; body: { parts: { type: "text"; text: string }[] } }): Promise<PromptResponse>
   }
 }
@@ -34,10 +46,17 @@ export async function runOpencodePrompt(prompt: string, deps: RunDeps = {}): Pro
 
   try {
     const session = await opencode.client.session.create({ body: { title: "rebot" } })
+    if (!session.data?.id) {
+      throw new Error(withSdkError("Failed to create opencode session", session.error))
+    }
+
     const response = await opencode.client.session.prompt({
       path: { id: session.data.id },
       body: { parts: [{ type: "text", text: prompt }] },
     })
+    if (response.error) {
+      throw new Error(withSdkError("Failed to run opencode prompt", response.error))
+    }
 
     return { markdown: extractText(response) }
   } finally {
@@ -50,4 +69,8 @@ function extractText(response: PromptResponse): string {
     .filter((part) => part.type === "text" && typeof part.text === "string")
     .map((part) => part.text)
     .join("\n")
+}
+
+function withSdkError(message: string, error?: SdkError): string {
+  return error?.message ? `${message}: ${error.message}` : message
 }
