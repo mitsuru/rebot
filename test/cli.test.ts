@@ -8,8 +8,8 @@ test("top-level help includes commands and shared options", async () => {
     collectInput: async () => {
       throw new Error("collectInput should not run for help")
     },
-    runOpencodePrompt: async () => {
-      throw new Error("opencode should not run for help")
+    runModel: async () => {
+      throw new Error("model should not run for help")
     },
     writeStdout: (text) => stdout.push(text),
     writeStderr: (text) => stderr.push(text),
@@ -31,8 +31,8 @@ test("command help includes command description and shared options", async () =>
     collectInput: async () => {
       throw new Error("collectInput should not run for command help")
     },
-    runOpencodePrompt: async () => {
-      throw new Error("opencode should not run for command help")
+    runModel: async () => {
+      throw new Error("model should not run for command help")
     },
     writeStdout: (text) => stdout.push(text),
     writeStderr: () => undefined,
@@ -52,8 +52,8 @@ test("version outputs package version", async () => {
     collectInput: async () => {
       throw new Error("collectInput should not run for version")
     },
-    runOpencodePrompt: async () => {
-      throw new Error("opencode should not run for version")
+    runModel: async () => {
+      throw new Error("model should not run for version")
     },
     writeStdout: (text) => stdout.push(text),
     writeStderr: () => undefined,
@@ -71,7 +71,7 @@ test("runCli orchestrates review with PR number", async () => {
       seenOptions.push(options)
       return { command: options.command, source: "github-pr", diff: "diff" }
     },
-    runOpencodePrompt: async (prompt) => ({ markdown: `result for ${prompt.includes("Review Findings")}` }),
+    runModel: async (prompt) => ({ markdown: `result for ${prompt.includes("Review Findings")}` }),
     writeStdout: (text) => writes.push(text),
     writeStderr: (text) => writes.push(`ERR:${text}`),
   })
@@ -87,8 +87,8 @@ test("unknown options fail without invoking opencode", async () => {
     collectInput: async () => {
       throw new Error("collectInput should not run for invalid options")
     },
-    runOpencodePrompt: async () => {
-      throw new Error("opencode should not run for invalid options")
+    runModel: async () => {
+      throw new Error("model should not run for invalid options")
     },
     writeStdout: () => undefined,
     writeStderr: (text) => stderr.push(text),

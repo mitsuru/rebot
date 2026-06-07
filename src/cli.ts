@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { Command, CommanderError, InvalidArgumentError } from "commander"
 import { collectInput as defaultCollectInput } from "./inputs"
-import { runOpencodePrompt as defaultRunOpencodePrompt } from "./opencode"
+import { runModel as defaultRunModel } from "./model"
 import { formatMarkdown } from "./output"
 import { buildPrompt } from "./prompts"
 import type { CliOptions, NormalizedInput, PullRequestMetadata, RebotCommand, RunResult } from "./types"
@@ -14,7 +14,7 @@ type RunCliInput = Omit<NormalizedInput, "base" | "diffFile" | "pr"> & {
 
 interface RunCliDeps {
   collectInput?: (options: CliOptions) => Promise<RunCliInput>
-  runOpencodePrompt?: (prompt: string) => Promise<RunResult>
+  runModel?: (prompt: string) => Promise<RunResult>
   writeStdout?: (text: string) => void
   writeStderr?: (text: string) => void
 }
@@ -28,7 +28,7 @@ const commands: Array<{ name: RebotCommand; description: string }> = [
 
 export function createProgram(deps: RunCliDeps = {}): Command {
   const collectInput = deps.collectInput ?? defaultCollectInput
-  const runOpencodePrompt = deps.runOpencodePrompt ?? defaultRunOpencodePrompt
+  const runModel = deps.runModel ?? defaultRunModel
   const writeStdout = deps.writeStdout ?? ((text: string) => process.stdout.write(text))
   const writeStderr = deps.writeStderr ?? ((text: string) => process.stderr.write(text))
 
@@ -61,7 +61,7 @@ Shared Options:
         const cliOptions = normalizeCliOptions(commandConfig.name, options)
         const input = normalizeInput(await collectInput(cliOptions))
         const prompt = buildPrompt(cliOptions.command, input)
-        const result = await runOpencodePrompt(prompt)
+        const result = await runModel(prompt)
         writeStdout(formatMarkdown(result.markdown))
       })
   }
