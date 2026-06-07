@@ -113,7 +113,7 @@ test("runCli omits model when --model is not provided", async () => {
   expect(seen).toEqual([{}])
 })
 
-test("unknown options fail without invoking opencode", async () => {
+test("unknown options fail without invoking the model", async () => {
   const stderr: string[] = []
   const code = await runCli(["review", "--bogus"], {
     collectInput: async () => {

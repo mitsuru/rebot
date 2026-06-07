@@ -6,5 +6,5 @@ test("formatMarkdown trims surrounding whitespace and keeps one trailing newline
 })
 
 test("formatMarkdown returns a fallback for empty assistant output", () => {
-  expect(formatMarkdown("   ")).toBe("No output was returned by opencode.\n")
+  expect(formatMarkdown("   ")).toBe("No output was returned by the model.\n")
 })

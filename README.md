@@ -1,11 +1,14 @@
 # rebot
 
-`rebot` is a PR-Agent-like CLI powered by opencode.
+`rebot` is a PR-Agent-like CLI powered by the Vercel AI SDK, calling models
+through the [opencode zen](https://opencode.ai/zen) gateway.
 
 ## Requirements
 
 - Bun
-- opencode provider authentication configured for your environment
+- An opencode zen API key. Either set `REBOT_ZEN_API_KEY`, or sign in with
+  `opencode auth login` so an `opencode-go` key is stored in
+  `~/.local/share/opencode/auth.json`.
 - Git for local diff input
 - GitHub CLI (`gh`) for `--pr` input
 
@@ -54,5 +57,18 @@ Input selection order:
 2. `--pr <number>`
 3. `--base <ref>`
 4. default `git diff`
+
+## Model Selection
+
+Every command accepts `--model <id>` (zen model ids are bare, e.g.
+`claude-sonnet-4-6`, `gpt-5.4`). Resolution order:
+
+1. `--model <id>`
+2. `REBOT_MODEL` environment variable
+3. default `claude-sonnet-4-6`
+
+```bash
+rebot review --diff-file fixtures/sample.patch --model gpt-5.4
+```
 
 The first version prints Markdown to stdout and does not post comments to GitHub.

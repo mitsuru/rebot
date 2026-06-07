@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.48",
-    "@opencode-ai/sdk": "latest",
     "ai": "^6.0.197",
     "commander": "^15.0.0"
   },
