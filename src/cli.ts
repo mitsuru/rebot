@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { Command, CommanderError, InvalidArgumentError } from "commander"
 import { collectInput as defaultCollectInput } from "./inputs"
-import { runModel as defaultRunModel } from "./model"
+import { DEFAULT_MODEL, MODEL_ENV, runModel as defaultRunModel } from "./model"
 import { formatMarkdown } from "./output"
 import { buildPrompt } from "./prompts"
 import type { CliOptions, NormalizedInput, PullRequestMetadata, RebotCommand, RunResult } from "./types"
@@ -14,7 +14,7 @@ type RunCliInput = Omit<NormalizedInput, "base" | "diffFile" | "pr"> & {
 
 interface RunCliDeps {
   collectInput?: (options: CliOptions) => Promise<RunCliInput>
-  runModel?: (prompt: string) => Promise<RunResult>
+  runModel?: (prompt: string, options?: { model?: string }) => Promise<RunResult>
   writeStdout?: (text: string) => void
   writeStderr?: (text: string) => void
 }
@@ -41,7 +41,8 @@ export function createProgram(deps: RunCliDeps = {}): Command {
 Shared Options:
   --diff-file <path>  read diff from a file
   --pr <number>       read diff from a GitHub pull request
-  --base <ref>        diff the current worktree against a base ref`,
+  --base <ref>        diff the current worktree against a base ref
+  --model <id>        model id to use (default: ${DEFAULT_MODEL}; or set ${MODEL_ENV})`,
     )
     .exitOverride()
     .configureOutput({
@@ -57,11 +58,12 @@ Shared Options:
       .option("--diff-file <path>", "read diff from a file")
       .option("--pr <number>", "read diff from a GitHub pull request", parsePositiveInteger)
       .option("--base <ref>", "diff the current worktree against a base ref")
-      .action(async (options: { diffFile?: string; pr?: number; base?: string }) => {
+      .option("--model <id>", `model id to use (default: ${DEFAULT_MODEL}; or set ${MODEL_ENV})`)
+      .action(async (options: { diffFile?: string; pr?: number; base?: string; model?: string }) => {
         const cliOptions = normalizeCliOptions(commandConfig.name, options)
         const input = normalizeInput(await collectInput(cliOptions))
         const prompt = buildPrompt(cliOptions.command, input)
-        const result = await runModel(prompt)
+        const result = await runModel(prompt, cliOptions.model ? { model: cliOptions.model } : {})
         writeStdout(formatMarkdown(result.markdown))
       })
   }
@@ -100,12 +102,13 @@ function parsePositiveInteger(value: string): number {
 
 function normalizeCliOptions(
   command: RebotCommand,
-  options: { diffFile?: string; pr?: number; base?: string },
+  options: { diffFile?: string; pr?: number; base?: string; model?: string },
 ): CliOptions {
   const cliOptions: CliOptions = { command }
   if (options.pr) cliOptions.pr = options.pr
   if (options.base) cliOptions.base = options.base
   if (options.diffFile) cliOptions.diffFile = options.diffFile
+  if (options.model) cliOptions.model = options.model
   return cliOptions
 }
 

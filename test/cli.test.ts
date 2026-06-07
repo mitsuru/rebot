@@ -81,6 +81,38 @@ test("runCli orchestrates review with PR number", async () => {
   expect(writes).toEqual(["result for true\n"])
 })
 
+test("runCli forwards --model to runModel", async () => {
+  const seen: Array<{ model?: string } | undefined> = []
+  const code = await runCli(["review", "--pr", "1", "--model", "gpt-5.4"], {
+    collectInput: async (options) => ({ command: options.command, source: "github-pr", diff: "diff" }),
+    runModel: async (_prompt, options) => {
+      seen.push(options)
+      return { markdown: "ok" }
+    },
+    writeStdout: () => undefined,
+    writeStderr: () => undefined,
+  })
+
+  expect(code).toBe(0)
+  expect(seen).toEqual([{ model: "gpt-5.4" }])
+})
+
+test("runCli omits model when --model is not provided", async () => {
+  const seen: Array<{ model?: string } | undefined> = []
+  const code = await runCli(["review", "--pr", "1"], {
+    collectInput: async (options) => ({ command: options.command, source: "github-pr", diff: "diff" }),
+    runModel: async (_prompt, options) => {
+      seen.push(options)
+      return { markdown: "ok" }
+    },
+    writeStdout: () => undefined,
+    writeStderr: () => undefined,
+  })
+
+  expect(code).toBe(0)
+  expect(seen).toEqual([{}])
+})
+
 test("unknown options fail without invoking opencode", async () => {
   const stderr: string[] = []
   const code = await runCli(["review", "--bogus"], {
