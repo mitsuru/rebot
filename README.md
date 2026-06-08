@@ -81,4 +81,20 @@ rebot review --diff-file fixtures/sample.patch --model gpt-5.4
 rebot review --diff-file fixtures/sample.patch --model go/deepseek-v4-pro
 ```
 
+## Repository Context
+
+By default rebot gives the model `read_file` and `grep` tools rooted at the
+current directory, so it can inspect code beyond the diff (callers, definitions,
+types) before reporting. Disable this with `--no-context`.
+
+`scripts/eval-context.ts` is a manual eval (it calls a live model) that compares
+review quality with context on vs off on `fixtures/eval/`, where the only bug
+lives outside the diff:
+
+```bash
+bun run scripts/eval-context.ts
+```
+
+With context on, rebot catches the cross-file bug; with it off, it cannot.
+
 The first version prints Markdown to stdout and does not post comments to GitHub.

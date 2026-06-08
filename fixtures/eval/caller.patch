@@ -1,0 +1,12 @@
+diff --git a/area.ts b/area.ts
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/area.ts
+@@ -0,0 +1,6 @@
++import { multiply } from "./lib"
++
++// Returns the area of a rectangle.
++export function rectangleArea(width: number, height: number): number {
++  return multiply(width, height)
++}
