@@ -1,10 +1,11 @@
 #!/usr/bin/env bun
 import { Command, CommanderError, InvalidArgumentError } from "commander"
+import { analyze as defaultAnalyze } from "./analyze"
 import { collectInput as defaultCollectInput } from "./inputs"
-import { DEFAULT_MODEL, MODEL_ENV, runModel as defaultRunModel } from "./model"
+import { DEFAULT_MODEL, MODEL_ENV } from "./model"
 import { formatMarkdown } from "./output"
 import { buildPrompt } from "./prompts"
-import type { CliOptions, NormalizedInput, PullRequestMetadata, RebotCommand, RunResult } from "./types"
+import type { CliOptions, NormalizedInput, PullRequestMetadata, RebotCommand } from "./types"
 
 type RunCliInput = Omit<NormalizedInput, "base" | "diffFile" | "pr"> & {
   base?: string | undefined
@@ -14,7 +15,7 @@ type RunCliInput = Omit<NormalizedInput, "base" | "diffFile" | "pr"> & {
 
 interface RunCliDeps {
   collectInput?: (options: CliOptions) => Promise<RunCliInput>
-  runModel?: (prompt: string, options?: { model?: string }) => Promise<RunResult>
+  analyze?: (command: RebotCommand, prompt: string, options?: { model?: string }) => Promise<string>
   writeStdout?: (text: string) => void
   writeStderr?: (text: string) => void
 }
@@ -28,7 +29,7 @@ const commands: Array<{ name: RebotCommand; description: string }> = [
 
 export function createProgram(deps: RunCliDeps = {}): Command {
   const collectInput = deps.collectInput ?? defaultCollectInput
-  const runModel = deps.runModel ?? defaultRunModel
+  const analyze = deps.analyze ?? defaultAnalyze
   const writeStdout = deps.writeStdout ?? ((text: string) => process.stdout.write(text))
   const writeStderr = deps.writeStderr ?? ((text: string) => process.stderr.write(text))
 
@@ -63,8 +64,12 @@ Shared Options:
         const cliOptions = normalizeCliOptions(commandConfig.name, options)
         const input = normalizeInput(await collectInput(cliOptions))
         const prompt = buildPrompt(cliOptions.command, input)
-        const result = await runModel(prompt, cliOptions.model ? { model: cliOptions.model } : {})
-        writeStdout(formatMarkdown(result.markdown))
+        const markdown = await analyze(
+          cliOptions.command,
+          prompt,
+          cliOptions.model ? { model: cliOptions.model } : {},
+        )
+        writeStdout(formatMarkdown(markdown))
       })
   }
 

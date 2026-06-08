@@ -15,36 +15,27 @@ ${JSON.stringify(payload, null, 2)}
 
 function commandInstruction(command: RebotCommand): string {
   if (command === "describe") {
-    return `You are generating a PR description.
-Return Markdown with these sections:
-# Description
-## Summary
-## Changed Areas
-## Notable Implementation Details
-## Suggested Test Focus
-Be concise and base every claim on the provided diff.`
+    return `You are generating a pull request description.
+Produce a concise summary, the changed areas, notable implementation details, and suggested test focus.
+Base every claim on the provided diff.`
   }
 
   if (command === "review") {
-    return `You are reviewing a pull request for correctness.
-Return Markdown with this top-level section:
-# Review Findings
-Findings first, ordered by severity. For each finding, include a file or diff reference when possible, explain the risk, and suggest a concrete fix. If there are no findings, say that explicitly and mention residual risks or testing gaps.`
+    return `You are reviewing a pull request for correctness, security, and other issues.
+Report each finding with a severity, a category, a file/line reference when possible, the risk it poses, and a concrete fix.
+If there are no issues, return an empty list of findings and note any residual risks or testing gaps in the summary.`
   }
 
   if (command === "improve") {
     return `You are suggesting practical improvements for a pull request.
-Return Markdown with this top-level section:
-# Improvement Suggestions
-Focus on concrete improvements that are close to the diff. Do not propose broad unrelated refactors.`
+Focus on concrete improvements that are close to the diff, with a file reference and suggested code when helpful.
+Do not propose broad unrelated refactors.`
   }
 
-  return `You are producing a complete PR analysis.
-Return Markdown with these top-level sections, in this order:
-# Description
-# Review Findings
-# Improvement Suggestions
-For Review Findings, put findings first, ordered by severity. If there are no findings, say that explicitly and mention residual risks or testing gaps.`
+  return `You are producing a complete pull request analysis: a description, review findings, and improvement suggestions.
+For review findings, report each with a severity, a category, a file/line reference when possible, the risk, and a concrete fix.
+If there are no issues, return an empty list of findings and note residual risks or testing gaps in the review summary.
+Base every claim on the provided diff.`
 }
 
 function buildPayload(input: NormalizedInput): {

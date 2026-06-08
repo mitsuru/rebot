@@ -28,7 +28,7 @@ interface RunModelDeps extends ModelDeps {
   generate?: GenerateFn
 }
 
-interface RunModelObjectDeps extends ModelDeps {
+export interface RunModelObjectDeps extends ModelDeps {
   generateObject?: GenerateObjectFn
   generateText?: GenerateFn
 }

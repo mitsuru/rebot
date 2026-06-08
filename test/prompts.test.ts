@@ -20,18 +20,18 @@ const input: NormalizedInput = {
 test("buildPrompt includes review instructions and diff", () => {
   const prompt = buildPrompt("review", input)
 
-  expect(prompt).toContain("Review Findings")
-  expect(prompt).toContain("Findings first")
+  expect(prompt).toContain("reviewing a pull request")
+  expect(prompt).toContain("severity")
   expect(prompt).toContain("diff --git")
   expect(prompt).toContain("Add feature")
 })
 
-test("buildPrompt for all includes all report sections", () => {
-  const prompt = buildPrompt("all", { ...input, command: "all" })
+test("buildPrompt for all covers description, review, and improvements", () => {
+  const prompt = buildPrompt("all", { ...input, command: "all" }).toLowerCase()
 
-  expect(prompt).toContain("Description")
-  expect(prompt).toContain("Review Findings")
-  expect(prompt).toContain("Improvement Suggestions")
+  expect(prompt).toContain("description")
+  expect(prompt).toContain("review findings")
+  expect(prompt).toContain("improvement suggestions")
 })
 
 test("buildPrompt serializes malicious PR input as untrusted JSON", () => {

@@ -8,7 +8,7 @@ test("top-level help includes commands and shared options", async () => {
     collectInput: async () => {
       throw new Error("collectInput should not run for help")
     },
-    runModel: async () => {
+    analyze: async () => {
       throw new Error("model should not run for help")
     },
     writeStdout: (text) => stdout.push(text),
@@ -31,7 +31,7 @@ test("command help includes command description and shared options", async () =>
     collectInput: async () => {
       throw new Error("collectInput should not run for command help")
     },
-    runModel: async () => {
+    analyze: async () => {
       throw new Error("model should not run for command help")
     },
     writeStdout: (text) => stdout.push(text),
@@ -52,7 +52,7 @@ test("version outputs package version", async () => {
     collectInput: async () => {
       throw new Error("collectInput should not run for version")
     },
-    runModel: async () => {
+    analyze: async () => {
       throw new Error("model should not run for version")
     },
     writeStdout: (text) => stdout.push(text),
@@ -66,28 +66,33 @@ test("version outputs package version", async () => {
 test("runCli orchestrates review with PR number", async () => {
   const writes: string[] = []
   const seenOptions: unknown[] = []
+  const seenCommands: string[] = []
   const code = await runCli(["review", "--pr", "123"], {
     collectInput: async (options) => {
       seenOptions.push(options)
       return { command: options.command, source: "github-pr", diff: "diff" }
     },
-    runModel: async (prompt) => ({ markdown: `result for ${prompt.includes("Review Findings")}` }),
+    analyze: async (command) => {
+      seenCommands.push(command)
+      return "# Review Findings\n\nNo findings."
+    },
     writeStdout: (text) => writes.push(text),
     writeStderr: (text) => writes.push(`ERR:${text}`),
   })
 
   expect(code).toBe(0)
   expect(seenOptions).toEqual([{ command: "review", pr: 123 }])
-  expect(writes).toEqual(["result for true\n"])
+  expect(seenCommands).toEqual(["review"])
+  expect(writes).toEqual(["# Review Findings\n\nNo findings.\n"])
 })
 
-test("runCli forwards --model to runModel", async () => {
+test("runCli forwards --model to analyze", async () => {
   const seen: Array<{ model?: string } | undefined> = []
   const code = await runCli(["review", "--pr", "1", "--model", "gpt-5.4"], {
     collectInput: async (options) => ({ command: options.command, source: "github-pr", diff: "diff" }),
-    runModel: async (_prompt, options) => {
+    analyze: async (_command, _prompt, options) => {
       seen.push(options)
-      return { markdown: "ok" }
+      return "ok"
     },
     writeStdout: () => undefined,
     writeStderr: () => undefined,
@@ -101,9 +106,9 @@ test("runCli omits model when --model is not provided", async () => {
   const seen: Array<{ model?: string } | undefined> = []
   const code = await runCli(["review", "--pr", "1"], {
     collectInput: async (options) => ({ command: options.command, source: "github-pr", diff: "diff" }),
-    runModel: async (_prompt, options) => {
+    analyze: async (_command, _prompt, options) => {
       seen.push(options)
-      return { markdown: "ok" }
+      return "ok"
     },
     writeStdout: () => undefined,
     writeStderr: () => undefined,
@@ -119,7 +124,7 @@ test("unknown options fail without invoking the model", async () => {
     collectInput: async () => {
       throw new Error("collectInput should not run for invalid options")
     },
-    runModel: async () => {
+    analyze: async () => {
       throw new Error("model should not run for invalid options")
     },
     writeStdout: () => undefined,
