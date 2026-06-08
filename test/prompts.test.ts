@@ -66,6 +66,19 @@ test("review prompt injects Go and Python checks when both appear", () => {
   expect(prompt).toContain("mutable default")
 })
 
+test("injects custom rules whose path glob matches a changed file", () => {
+  const diff = "diff --git a/src/api/users.ts b/src/api/users.ts\n--- a/src/api/users.ts\n+++ b/src/api/users.ts\n@@ -0,0 +1,1 @@\n+export const x = 1\n"
+  const rules = [
+    { path: "src/api/**", guidance: "Verify authorization on every endpoint." },
+    { path: "src/db/**", guidance: "Use parameterized queries." },
+  ]
+  const prompt = buildPrompt("review", { command: "review", source: "diff-file", diff }, { rules })
+
+  expect(prompt).toContain("Verify authorization on every endpoint.")
+  // a rule whose glob does not match any changed file is not injected
+  expect(prompt).not.toContain("Use parameterized queries.")
+})
+
 test("micro-optimization guidance is opt-in", () => {
   const off = buildPrompt("review", input)
   expect(off.toLowerCase()).not.toContain("micro-optimization")

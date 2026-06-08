@@ -3,11 +3,20 @@ import { z } from "zod"
 
 export const CONFIG_FILENAME = ".rebot.toml"
 
+export const ruleSchema = z.object({
+  path: z.string(),
+  guidance: z.string(),
+  name: z.string().optional(),
+})
+
+export type RebotRule = z.infer<typeof ruleSchema>
+
 export const configSchema = z.object({
   model: z.string().optional(),
   context: z.boolean().optional(),
   maxDiffTokens: z.number().int().positive().optional(),
   microOptimizations: z.boolean().optional(),
+  rules: z.array(ruleSchema).optional(),
   guardrails: z
     .object({
       maxSteps: z.number().int().positive().optional(),

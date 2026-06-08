@@ -108,8 +108,27 @@ Cite the exact file and line, use backticks for identifiers and paths, order fin
 
 export const MICRO_OPT_GUIDANCE = `Also include micro-optimizations as additional findings: small performance improvements such as avoiding repeated lookups or allocations, hoisting invariant work out of loops, or using more efficient built-ins or data structures. Mark them severity "low" or "info" and category "performance", and only suggest them when the benefit is clear and they do not hurt readability or correctness.`
 
+export interface CustomRule {
+  path: string
+  guidance: string
+  name?: string | undefined
+}
+
 export interface BuildPromptOptions {
   microOptimizations?: boolean
+  rules?: CustomRule[]
+}
+
+function matchedRules(input: NormalizedInput, rules: CustomRule[]): string {
+  if (rules.length === 0) return ""
+  const paths = parseDiffFiles(input.diff).map((file) => file.path)
+  const matched = rules.filter((rule) => {
+    const glob = new Bun.Glob(rule.path)
+    return paths.some((path) => glob.match(path))
+  })
+  if (matched.length === 0) return ""
+  const lines = matched.map((rule) => `- ${rule.name ? `(${rule.name}) ` : ""}${rule.guidance}`)
+  return `\n\nProject-specific review rules (apply to the matching changed files):\n${lines.join("\n")}`
 }
 
 export function buildPrompt(
@@ -120,6 +139,7 @@ export function buildPrompt(
   const instruction = commandInstruction(command)
   const reviewing = command === "review" || command === "all"
   let extras = reviewing ? languageChecklist(input) : ""
+  if (reviewing && options.rules) extras += matchedRules(input, options.rules)
   if (reviewing && options.microOptimizations) extras += `\n\n${MICRO_OPT_GUIDANCE}`
   const payload = buildPayload(input)
 

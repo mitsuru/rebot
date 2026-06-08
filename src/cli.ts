@@ -189,7 +189,8 @@ Shared Options:
         const collected = normalizeInput(await collectInput(cliOptions))
         const { input, note } = applyDiffBudget(collected, config.maxDiffTokens ?? DEFAULT_MAX_DIFF_TOKENS)
         const microOptimizations = options.microOpt ?? config.microOptimizations ?? false
-        const prompt = buildPrompt(cliOptions.command, input, { microOptimizations }) + note
+        const promptOptions = { microOptimizations, ...(config.rules ? { rules: config.rules } : {}) }
+        const prompt = buildPrompt(cliOptions.command, input, promptOptions) + note
         const runOptions = resolveRunOptions(cliOptions, config, process.env)
 
         if (options.comment) {

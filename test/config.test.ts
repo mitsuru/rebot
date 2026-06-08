@@ -23,6 +23,22 @@ describe("loadConfig", () => {
     expect(cfg.microOptimizations).toBe(true)
   })
 
+  test("parses path-based rules", async () => {
+    const cfg = await loadConfig({
+      readConfigFile: async () =>
+        '[[rules]]\npath = "src/api/**"\nguidance = "check auth"\nname = "api"\n',
+    })
+    expect(cfg.rules).toHaveLength(1)
+    expect(cfg.rules?.[0]?.path).toBe("src/api/**")
+    expect(cfg.rules?.[0]?.guidance).toBe("check auth")
+  })
+
+  test("rejects a rule without guidance", async () => {
+    await expect(
+      loadConfig({ readConfigFile: async () => '[[rules]]\npath = "src/**"\n' }),
+    ).rejects.toThrow(/rebot\.toml/)
+  })
+
   test("returns an empty config when the file is absent", async () => {
     const cfg = await loadConfig({ readConfigFile: async () => undefined })
     expect(cfg).toEqual({})
