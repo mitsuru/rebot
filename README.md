@@ -136,4 +136,20 @@ maxOutputTokens = 8192
   JSON is `{ "answer": "..." }`).
 - `--output <file>`: write the output to a file instead of stdout.
 
-rebot prints to stdout and does not post comments to GitHub.
+## Posting to GitHub
+
+`--comment` posts the result to a PR (requires `--pr` and the `gh` CLI):
+
+```bash
+rebot review --pr 123 --comment
+```
+
+The summary is posted as a single comment and updated in place on re-runs (it
+carries a hidden `<!-- rebot:<command> -->` marker). For `review`/`all`, findings
+that land on changed lines are also posted as inline review comments.
+
+### GitHub Action
+
+`.github/workflows/rebot.yml` runs `rebot review --pr <n> --comment` on every
+pull request. Add a `REBOT_ZEN_API_KEY` repository secret; the default
+`GITHUB_TOKEN` lets `gh` post comments (`pull-requests: write`).
