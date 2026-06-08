@@ -29,6 +29,7 @@ const commands: Array<{ name: RebotCommand; description: string }> = [
   { name: "review", description: "produce review findings" },
   { name: "improve", description: "produce improvement suggestions" },
   { name: "all", description: "produce a complete pull request analysis" },
+  { name: "changelog", description: "produce a changelog entry" },
 ]
 
 export function createProgram(deps: RunCliDeps = {}): Command {

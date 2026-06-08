@@ -85,6 +85,15 @@ export const improveResultSchema = z.object({
   suggestions: z.array(improvementSchema),
 })
 
+export const changelogEntrySchema = z.object({
+  type: z.enum(["added", "changed", "deprecated", "removed", "fixed", "security"]),
+  description: z.string(),
+})
+
+export const changelogResultSchema = z.object({
+  entries: z.array(changelogEntrySchema),
+})
+
 export const allResultSchema = z.object({
   description: describeResultSchema,
   review: reviewResultSchema,
@@ -96,6 +105,8 @@ export type ReviewResult = z.infer<typeof reviewResultSchema>
 export type DescribeResult = z.infer<typeof describeResultSchema>
 export type Improvement = z.infer<typeof improvementSchema>
 export type ImproveResult = z.infer<typeof improveResultSchema>
+export type ChangelogEntry = z.infer<typeof changelogEntrySchema>
+export type ChangelogResult = z.infer<typeof changelogResultSchema>
 export type AllResult = z.infer<typeof allResultSchema>
 
 const SCHEMAS = {
@@ -103,6 +114,7 @@ const SCHEMAS = {
   review: reviewResultSchema,
   improve: improveResultSchema,
   all: allResultSchema,
+  changelog: changelogResultSchema,
 } as const
 
 export function resultSchemaFor(command: RebotCommand) {

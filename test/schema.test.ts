@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import {
   allResultSchema,
+  changelogResultSchema,
   describeResultSchema,
   improveResultSchema,
   resultSchemaFor,
@@ -192,11 +193,33 @@ describe("allResultSchema", () => {
   })
 })
 
+describe("changelogResultSchema", () => {
+  test("parses changelog entries by category", () => {
+    const parsed = changelogResultSchema.parse({
+      entries: [
+        { type: "added", description: "rebot ask command" },
+        { type: "fixed", description: "off-by-one in parser" },
+      ],
+    })
+
+    expect(parsed.entries).toHaveLength(2)
+    expect(parsed.entries[0]?.type).toBe("added")
+  })
+
+  test("rejects an unknown changelog category", () => {
+    const result = changelogResultSchema.safeParse({
+      entries: [{ type: "improved", description: "x" }],
+    })
+    expect(result.success).toBe(false)
+  })
+})
+
 describe("resultSchemaFor", () => {
   test("returns the matching schema per command", () => {
     expect(resultSchemaFor("review")).toBe(reviewResultSchema)
     expect(resultSchemaFor("describe")).toBe(describeResultSchema)
     expect(resultSchemaFor("improve")).toBe(improveResultSchema)
     expect(resultSchemaFor("all")).toBe(allResultSchema)
+    expect(resultSchemaFor("changelog")).toBe(changelogResultSchema)
   })
 })

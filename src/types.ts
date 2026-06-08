@@ -1,4 +1,4 @@
-export type RebotCommand = "describe" | "review" | "improve" | "all"
+export type RebotCommand = "describe" | "review" | "improve" | "all" | "changelog"
 
 export type InputSource = "diff-file" | "github-pr" | "git-base" | "git-worktree"
 

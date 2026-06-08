@@ -36,6 +36,12 @@ Also assess the PR overall: estimate the effort to review (1=trivial to 5=demand
 If there are no issues, return an empty list of findings and note any residual risks or testing gaps in the summary.`
   }
 
+  if (command === "changelog") {
+    return `You are generating a changelog entry for a pull request.
+Use Keep a Changelog categories (added, changed, deprecated, removed, fixed, security).
+Write one concise, user-facing entry per notable change. Base every entry on the provided diff.`
+  }
+
   if (command === "improve") {
     return `You are suggesting practical improvements for a pull request.
 Make each suggestion committable: a kind (bug, enhancement, performance, maintainability, readability, best-practice, other), a file and line range, the existing code being changed, and the improved code that replaces it.

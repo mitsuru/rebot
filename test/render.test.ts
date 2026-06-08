@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import {
   renderAll,
+  renderChangelog,
   renderDescribe,
   renderImprove,
   renderResult,
@@ -201,6 +202,30 @@ describe("renderAll", () => {
   })
 })
 
+describe("renderChangelog", () => {
+  test("groups entries under their category headings", () => {
+    const md = renderChangelog({
+      entries: [
+        { type: "added", description: "ask command" },
+        { type: "fixed", description: "parser bug" },
+        { type: "added", description: "labels command" },
+      ],
+    })
+
+    expect(md).toContain("# Changelog")
+    expect(md).toContain("## Added")
+    expect(md).toContain("ask command")
+    expect(md).toContain("labels command")
+    expect(md).toContain("## Fixed")
+    expect(md).toContain("parser bug")
+    expect(md).not.toContain("## Removed")
+  })
+
+  test("states when there are no entries", () => {
+    expect(renderChangelog({ entries: [] }).toLowerCase()).toContain("no changelog")
+  })
+})
+
 describe("renderResult", () => {
   test("dispatches per command", () => {
     expect(renderResult("review", { findings: [] })).toContain("# Review Findings")
@@ -213,6 +238,7 @@ describe("renderResult", () => {
       }),
     ).toContain("# Description")
     expect(renderResult("improve", { suggestions: [] })).toContain("# Improvement Suggestions")
+    expect(renderResult("changelog", { entries: [] }).toLowerCase()).toContain("changelog")
     expect(
       renderResult("all", {
         description: { summary: "s", changedAreas: [], notableDetails: [], suggestedTestFocus: [] },

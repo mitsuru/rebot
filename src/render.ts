@@ -1,5 +1,6 @@
 import type {
   AllResult,
+  ChangelogResult,
   DescribeResult,
   ImproveResult,
   ReviewFinding,
@@ -7,6 +8,15 @@ import type {
   Severity,
 } from "./schema"
 import type { RebotCommand } from "./types"
+
+const CHANGELOG_CATEGORIES: Array<{ type: ChangelogResult["entries"][number]["type"]; heading: string }> = [
+  { type: "added", heading: "Added" },
+  { type: "changed", heading: "Changed" },
+  { type: "deprecated", heading: "Deprecated" },
+  { type: "removed", heading: "Removed" },
+  { type: "fixed", heading: "Fixed" },
+  { type: "security", heading: "Security" },
+]
 
 const SEVERITY_ORDER: Severity[] = ["critical", "high", "medium", "low", "info"]
 
@@ -129,6 +139,18 @@ export function renderImprove(result: ImproveResult): string {
   return parts.join("\n\n")
 }
 
+export function renderChangelog(result: ChangelogResult): string {
+  if (result.entries.length === 0) return "# Changelog\n\nNo changelog entries."
+
+  const parts: string[] = ["# Changelog"]
+  for (const { type, heading } of CHANGELOG_CATEGORIES) {
+    const items = result.entries.filter((entry) => entry.type === type)
+    if (items.length === 0) continue
+    parts.push(`## ${heading}`, items.map((entry) => `- ${entry.description}`).join("\n"))
+  }
+  return parts.join("\n\n")
+}
+
 export function renderAll(result: AllResult): string {
   return [
     renderDescribe(result.description),
@@ -147,5 +169,7 @@ export function renderResult(command: RebotCommand, result: unknown): string {
       return renderImprove(result as ImproveResult)
     case "all":
       return renderAll(result as AllResult)
+    case "changelog":
+      return renderChangelog(result as ChangelogResult)
   }
 }
