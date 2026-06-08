@@ -198,6 +198,54 @@ test("runCli runs ask with a question and forwards options", async () => {
   expect(writes.join("")).toContain("answer text")
 })
 
+test("runCli passes json format to analyze with --json", async () => {
+  let seen: unknown
+  await runCli(["review", "--pr", "1", "--json"], {
+    collectInput: async (options) => ({ command: options.command, source: "github-pr", diff: "diff" }),
+    analyze: async (_command, _prompt, options) => {
+      seen = options
+      return '{"findings":[]}'
+    },
+    writeStdout: () => undefined,
+    writeStderr: () => undefined,
+  })
+
+  expect((seen as { format?: string }).format).toBe("json")
+})
+
+test("runCli writes output to a file with --output", async () => {
+  const files: Array<{ path: string; content: string }> = []
+  const stdout: string[] = []
+  const code = await runCli(["review", "--pr", "1", "--output", "out.md"], {
+    collectInput: async (options) => ({ command: options.command, source: "github-pr", diff: "diff" }),
+    analyze: async () => "# Review Findings\n\nNo findings.",
+    writeFile: async (path, content) => {
+      files.push({ path, content })
+    },
+    writeStdout: (text) => stdout.push(text),
+    writeStderr: () => undefined,
+  })
+
+  expect(code).toBe(0)
+  expect(files).toHaveLength(1)
+  expect(files[0]?.path).toBe("out.md")
+  expect(files[0]?.content).toContain("# Review Findings")
+  expect(stdout).toEqual([])
+})
+
+test("runCli wraps ask output as JSON with --json", async () => {
+  const stdout: string[] = []
+  await runCli(["ask", "why?", "--pr", "1", "--json"], {
+    collectInput: async (options) => ({ command: options.command, source: "github-pr", diff: "diff" }),
+    ask: async () => "because reasons",
+    writeStdout: (text) => stdout.push(text),
+    writeStderr: () => undefined,
+  })
+
+  const parsed = JSON.parse(stdout.join(""))
+  expect(parsed.answer).toBe("because reasons")
+})
+
 test("unknown options fail without invoking the model", async () => {
   const stderr: string[] = []
   const code = await runCli(["review", "--bogus"], {

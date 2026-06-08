@@ -115,4 +115,25 @@ bun run scripts/eval-context.ts
 
 With context on, rebot catches the cross-file bug; with it off, it cannot.
 
-The first version prints Markdown to stdout and does not post comments to GitHub.
+## Configuration
+
+Defaults can be set in a `.rebot.toml` in the working directory. Precedence is
+CLI flag > environment variable > config file > built-in default.
+
+```toml
+model = "go/deepseek-v4-pro"
+context = true
+
+[guardrails]
+maxSteps = 8
+timeoutMs = 120000
+maxOutputTokens = 8192
+```
+
+## Output
+
+- `--json`: print the raw structured result instead of Markdown (for `ask`, the
+  JSON is `{ "answer": "..." }`).
+- `--output <file>`: write the output to a file instead of stdout.
+
+rebot prints to stdout and does not post comments to GitHub.

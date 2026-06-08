@@ -32,6 +32,23 @@ test("analyze renders a review result to Markdown via the fallback path", async 
   expect(md).toContain("use a + b")
 })
 
+test("analyze returns raw JSON when format is json", async () => {
+  const reviewJson = JSON.stringify({ findings: [{ title: "Bug", severity: "high", category: "correctness", description: "d" }] })
+
+  const out = await analyze("review", "review this", {
+    format: "json",
+    resolveModel: async () => ({}) as never,
+    generateObject: async () => {
+      throw new Error("unsupported")
+    },
+    generateText: async () => ({ text: reviewJson }),
+  })
+
+  const parsed = JSON.parse(out)
+  expect(parsed.findings[0].title).toBe("Bug")
+  expect(out).not.toContain("# Review Findings")
+})
+
 test("analyze uses the schema for the given command", async () => {
   const describeJson = JSON.stringify({
     summary: "Adds a helper.",

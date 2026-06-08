@@ -22,6 +22,7 @@ interface RunCliDeps {
   loadConfig?: () => Promise<RebotConfig>
   writeStdout?: (text: string) => void
   writeStderr?: (text: string) => void
+  writeFile?: (path: string, content: string) => Promise<void>
 }
 
 interface RunOptions {
@@ -30,6 +31,7 @@ interface RunOptions {
   maxSteps?: number
   timeoutMs?: number
   maxOutputTokens?: number
+  format?: "markdown" | "json"
 }
 
 interface SharedOptions {
@@ -38,6 +40,8 @@ interface SharedOptions {
   base?: string
   model?: string
   context?: boolean
+  json?: boolean
+  output?: string
 }
 
 function addSharedOptions(command: Command): Command {
@@ -47,6 +51,8 @@ function addSharedOptions(command: Command): Command {
     .option("--base <ref>", "diff the current worktree against a base ref")
     .option("--model <id>", `model id, optional go/ or zen/ prefix (default: ${DEFAULT_MODEL}; or set ${MODEL_ENV})`)
     .option("--no-context", "disable repository context tools (read_file/grep)")
+    .option("--json", "output raw JSON instead of Markdown")
+    .option("--output <file>", "write output to a file instead of stdout")
 }
 
 function resolveRunOptions(
@@ -83,6 +89,13 @@ export function createProgram(deps: RunCliDeps = {}): Command {
   const loadConfig = deps.loadConfig ?? defaultLoadConfig
   const writeStdout = deps.writeStdout ?? ((text: string) => process.stdout.write(text))
   const writeStderr = deps.writeStderr ?? ((text: string) => process.stderr.write(text))
+  const writeFile = deps.writeFile ?? (async (path: string, content: string) => void (await Bun.write(path, content)))
+
+  const emit = async (content: string, output?: string): Promise<void> => {
+    const final = formatMarkdown(content)
+    if (output) await writeFile(output, final)
+    else writeStdout(final)
+  }
 
   const program = new Command()
     .name("rebot")
@@ -112,8 +125,9 @@ Shared Options:
         const input = normalizeInput(await collectInput(cliOptions))
         const prompt = buildPrompt(cliOptions.command, input)
         const runOptions = resolveRunOptions(cliOptions, config, process.env)
-        const markdown = await analyze(cliOptions.command, prompt, runOptions)
-        writeStdout(formatMarkdown(markdown))
+        if (options.json) runOptions.format = "json"
+        const output = await analyze(cliOptions.command, prompt, runOptions)
+        await emit(output, options.output)
       },
     )
   }
@@ -131,8 +145,9 @@ Shared Options:
     const input = normalizeInput(await collectInput(cliOptions))
     const prompt = buildAskPrompt(question, input)
     const runOptions = resolveRunOptions(cliOptions, config, process.env)
-    const markdown = await ask(prompt, runOptions)
-    writeStdout(formatMarkdown(markdown))
+    const answer = await ask(prompt, runOptions)
+    const output = options.json ? JSON.stringify({ answer }, null, 2) : answer
+    await emit(output, options.output)
   })
 
   return program

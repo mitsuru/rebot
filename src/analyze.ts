@@ -11,6 +11,8 @@ export interface AnalyzeDeps extends RunModelObjectDeps {
   cwd?: string
   /** Enable repository context tools (read_file/grep). Defaults to true. */
   context?: boolean
+  /** Output format. "markdown" (default) renders; "json" returns the raw result. */
+  format?: "markdown" | "json"
 }
 
 /**
@@ -22,7 +24,7 @@ export async function analyze(
   prompt: string,
   deps: AnalyzeDeps = {},
 ): Promise<string> {
-  const { cwd, context, ...modelDeps } = deps
+  const { cwd, context, format, ...modelDeps } = deps
   const useContext = context ?? true
 
   const runDeps: RunModelObjectDeps = { ...modelDeps }
@@ -33,5 +35,5 @@ export async function analyze(
   const finalPrompt = runDeps.tools ? withContextGuidance(prompt) : prompt
   const schema = resultSchemaFor(command) as ZodType
   const result = await runModelObject(finalPrompt, schema, runDeps)
-  return renderResult(command, result)
+  return format === "json" ? JSON.stringify(result, null, 2) : renderResult(command, result)
 }
