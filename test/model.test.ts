@@ -103,6 +103,29 @@ test("runModelObject falls back to schema-in-prompt when native is unsupported",
   expect(textPrompt).toContain("JSON")
 })
 
+test("runModelObject passes tools to the fallback loop and skips the native path", async () => {
+  let nativeCalled = false
+  let passedTools: unknown
+  const tools = { grep: {} } as never
+
+  const obj = await runModelObject("p", z.object({ ok: z.boolean() }), {
+    tools,
+    resolveModel: async () => ({}) as never,
+    generateObject: async () => {
+      nativeCalled = true
+      return { object: {} }
+    },
+    generateText: async ({ tools: t }) => {
+      passedTools = t
+      return { text: '{"ok": true}' }
+    },
+  })
+
+  expect(nativeCalled).toBe(false)
+  expect(passedTools).toBe(tools)
+  expect(obj).toEqual({ ok: true })
+})
+
 test("runModelObject strips markdown code fences in the fallback path", async () => {
   const obj = await runModelObject("p", z.object({ ok: z.boolean() }), {
     resolveModel: async () => ({}) as never,

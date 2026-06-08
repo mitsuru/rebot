@@ -1,13 +1,27 @@
-import { generateObject, generateText, type LanguageModel } from "ai"
+import {
+  generateObject,
+  generateText,
+  stepCountIs,
+  type LanguageModel,
+  type StopCondition,
+  type ToolSet,
+} from "ai"
 import { z, type ZodType } from "zod"
 import { getModel } from "./provider"
 import type { RunResult } from "./types"
+
+export const DEFAULT_MAX_STEPS = 8
 
 // Go subscription model (no zen balance required). Override with --model or REBOT_MODEL.
 export const DEFAULT_MODEL = "go/deepseek-v4-pro"
 export const MODEL_ENV = "REBOT_MODEL"
 
-type GenerateFn = (options: { model: LanguageModel; prompt: string }) => Promise<{ text: string }>
+type GenerateFn = (options: {
+  model: LanguageModel
+  prompt: string
+  tools?: ToolSet
+  stopWhen?: StopCondition<ToolSet>
+}) => Promise<{ text: string }>
 type GenerateObjectFn = (options: {
   model: LanguageModel
   prompt: string
@@ -31,6 +45,8 @@ interface RunModelDeps extends ModelDeps {
 export interface RunModelObjectDeps extends ModelDeps {
   generateObject?: GenerateObjectFn
   generateText?: GenerateFn
+  tools?: ToolSet
+  maxSteps?: number
 }
 
 function resolveModelId(deps: ModelDeps): string {
@@ -72,19 +88,26 @@ export async function runModelObject<T>(
   const genObject = deps.generateObject ?? ((options) => generateObject(options))
   const genText = deps.generateText ?? ((options) => generateText(options))
 
-  try {
-    const model = await resolveModel(modelId, { structuredOutputs: true })
-    const { object } = await genObject({ model, prompt, schema })
-    return schema.parse(object)
-  } catch {
-    // Native structured output unavailable or non-conforming; fall back below.
+  // The native structured-output path cannot run a tool loop, so skip it when
+  // tools are requested (the model needs to gather context before answering).
+  if (!deps.tools) {
+    try {
+      const model = await resolveModel(modelId, { structuredOutputs: true })
+      const { object } = await genObject({ model, prompt, schema })
+      return schema.parse(object)
+    } catch {
+      // Native structured output unavailable or non-conforming; fall back below.
+    }
   }
 
   try {
     const model = await resolveModel(modelId)
     const schemaPrompt = buildSchemaPrompt(prompt, schema)
+    const toolOptions = deps.tools
+      ? { tools: deps.tools, stopWhen: stepCountIs(deps.maxSteps ?? DEFAULT_MAX_STEPS) }
+      : {}
 
-    let text = (await genText({ model, prompt: schemaPrompt })).text
+    let text = (await genText({ model, prompt: schemaPrompt, ...toolOptions })).text
     let validated = parseSchema(text, schema)
 
     if (!validated.success) {
