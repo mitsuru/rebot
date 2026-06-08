@@ -42,6 +42,11 @@ Use Keep a Changelog categories (added, changed, deprecated, removed, fixed, sec
 Write one concise, user-facing entry per notable change. Base every entry on the provided diff.`
   }
 
+  if (command === "labels") {
+    return `You are suggesting labels for a pull request.
+Propose a small, relevant set of labels (e.g. bug, enhancement, documentation, tests, plus area-specific labels). Give each a short reason. Base every label on the provided diff.`
+  }
+
   if (command === "improve") {
     return `You are suggesting practical improvements for a pull request.
 Make each suggestion committable: a kind (bug, enhancement, performance, maintainability, readability, best-practice, other), a file and line range, the existing code being changed, and the improved code that replaces it.

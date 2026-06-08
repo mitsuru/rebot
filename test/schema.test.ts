@@ -4,6 +4,7 @@ import {
   changelogResultSchema,
   describeResultSchema,
   improveResultSchema,
+  labelsResultSchema,
   resultSchemaFor,
   reviewResultSchema,
 } from "../src/schema"
@@ -214,6 +215,20 @@ describe("changelogResultSchema", () => {
   })
 })
 
+describe("labelsResultSchema", () => {
+  test("parses labels with optional reasons", () => {
+    const parsed = labelsResultSchema.parse({
+      labels: [{ name: "enhancement", reason: "adds a new command" }, { name: "cli" }],
+    })
+    expect(parsed.labels[0]?.name).toBe("enhancement")
+    expect(parsed.labels[1]?.reason).toBeUndefined()
+  })
+
+  test("requires a label name", () => {
+    expect(labelsResultSchema.safeParse({ labels: [{ reason: "x" }] }).success).toBe(false)
+  })
+})
+
 describe("resultSchemaFor", () => {
   test("returns the matching schema per command", () => {
     expect(resultSchemaFor("review")).toBe(reviewResultSchema)
@@ -221,5 +236,6 @@ describe("resultSchemaFor", () => {
     expect(resultSchemaFor("improve")).toBe(improveResultSchema)
     expect(resultSchemaFor("all")).toBe(allResultSchema)
     expect(resultSchemaFor("changelog")).toBe(changelogResultSchema)
+    expect(resultSchemaFor("labels")).toBe(labelsResultSchema)
   })
 })

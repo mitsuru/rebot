@@ -3,6 +3,7 @@ import type {
   ChangelogResult,
   DescribeResult,
   ImproveResult,
+  LabelsResult,
   ReviewFinding,
   ReviewResult,
   Severity,
@@ -151,6 +152,14 @@ export function renderChangelog(result: ChangelogResult): string {
   return parts.join("\n\n")
 }
 
+export function renderLabels(result: LabelsResult): string {
+  if (result.labels.length === 0) return "# Labels\n\nNo labels."
+  const items = result.labels.map((label) =>
+    label.reason ? `- \`${label.name}\` — ${label.reason}` : `- \`${label.name}\``,
+  )
+  return ["# Labels", items.join("\n")].join("\n\n")
+}
+
 export function renderAll(result: AllResult): string {
   return [
     renderDescribe(result.description),
@@ -171,5 +180,7 @@ export function renderResult(command: RebotCommand, result: unknown): string {
       return renderAll(result as AllResult)
     case "changelog":
       return renderChangelog(result as ChangelogResult)
+    case "labels":
+      return renderLabels(result as LabelsResult)
   }
 }

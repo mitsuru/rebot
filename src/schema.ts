@@ -94,6 +94,15 @@ export const changelogResultSchema = z.object({
   entries: z.array(changelogEntrySchema),
 })
 
+export const labelSchema = z.object({
+  name: z.string(),
+  reason: z.string().optional(),
+})
+
+export const labelsResultSchema = z.object({
+  labels: z.array(labelSchema),
+})
+
 export const allResultSchema = z.object({
   description: describeResultSchema,
   review: reviewResultSchema,
@@ -107,6 +116,8 @@ export type Improvement = z.infer<typeof improvementSchema>
 export type ImproveResult = z.infer<typeof improveResultSchema>
 export type ChangelogEntry = z.infer<typeof changelogEntrySchema>
 export type ChangelogResult = z.infer<typeof changelogResultSchema>
+export type Label = z.infer<typeof labelSchema>
+export type LabelsResult = z.infer<typeof labelsResultSchema>
 export type AllResult = z.infer<typeof allResultSchema>
 
 const SCHEMAS = {
@@ -115,6 +126,7 @@ const SCHEMAS = {
   improve: improveResultSchema,
   all: allResultSchema,
   changelog: changelogResultSchema,
+  labels: labelsResultSchema,
 } as const
 
 export function resultSchemaFor(command: RebotCommand) {

@@ -4,6 +4,7 @@ import {
   renderChangelog,
   renderDescribe,
   renderImprove,
+  renderLabels,
   renderResult,
   renderReview,
 } from "../src/render"
@@ -226,6 +227,22 @@ describe("renderChangelog", () => {
   })
 })
 
+describe("renderLabels", () => {
+  test("renders labels with reasons", () => {
+    const md = renderLabels({
+      labels: [{ name: "enhancement", reason: "adds a command" }, { name: "cli" }],
+    })
+    expect(md).toContain("# Labels")
+    expect(md).toContain("enhancement")
+    expect(md).toContain("adds a command")
+    expect(md).toContain("cli")
+  })
+
+  test("states when there are no labels", () => {
+    expect(renderLabels({ labels: [] }).toLowerCase()).toContain("no labels")
+  })
+})
+
 describe("renderResult", () => {
   test("dispatches per command", () => {
     expect(renderResult("review", { findings: [] })).toContain("# Review Findings")
@@ -239,6 +256,7 @@ describe("renderResult", () => {
     ).toContain("# Description")
     expect(renderResult("improve", { suggestions: [] })).toContain("# Improvement Suggestions")
     expect(renderResult("changelog", { entries: [] }).toLowerCase()).toContain("changelog")
+    expect(renderResult("labels", { labels: [] })).toContain("# Labels")
     expect(
       renderResult("all", {
         description: { summary: "s", changedAreas: [], notableDetails: [], suggestedTestFocus: [] },
