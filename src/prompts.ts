@@ -9,6 +9,31 @@ export function withContextGuidance(prompt: string): string {
   return `${prompt}\n${CONTEXT_GUIDANCE}\n`
 }
 
+export const REVIEW_GUIDANCE = `Focus on problems this change introduces. Examine:
+- Correctness and logic errors: off-by-one, inverted conditions, wrong operators, incorrect return values
+- Null/undefined safety and unchecked optional values
+- Concurrency: race conditions, shared mutable state, missing synchronization
+- Resource handling: leaked files, handles, connections, or unclosed resources
+- Error handling: swallowed errors, unhandled rejections, missing edge cases
+- Input validation and injection (SQL, command, XSS) and other security risks
+- API and contract changes, and backward compatibility
+- Performance on hot paths
+- Test adequacy for the changed behavior
+
+Calibration:
+- Report clear bugs and security issues confidently and thoroughly.
+- Flag a lower-severity issue only when you can describe a concrete scenario in which it fails.
+- For a high-impact but uncertain issue, report it and state the uncertainty explicitly.
+- Set severity to match real impact; note when an issue only triggers under specific inputs.
+
+Avoid:
+- Style or formatting nitpicks unless they cause a defect.
+- Praise, filler, or restating what the diff does.
+- Vague findings — each must be specific and actionable.
+- Speculation about other code: confirm cross-file impact with the read_file/grep tools before reporting it.
+
+Cite the exact file and line, use backticks for identifiers and paths, order findings by severity, and report the most important ones (about 10 at most).`
+
 export function buildPrompt(command: RebotCommand, input: NormalizedInput): string {
   const instruction = commandInstruction(command)
   const payload = buildPayload(input)
@@ -46,8 +71,11 @@ Base every claim on the provided diff.`
   }
 
   if (command === "review") {
-    return `You are reviewing a pull request for correctness, security, and other issues.
-Report each finding with a severity, a category, a file/line reference when possible, the risk it poses, and a concrete fix.
+    return `You are a senior engineer reviewing a pull request.
+Report each finding with a severity, a category, a file/line reference, the risk it poses, and a concrete fix.
+
+${REVIEW_GUIDANCE}
+
 Also assess the PR overall: estimate the effort to review (1=trivial to 5=demanding), whether it includes relevant tests, any security concerns, and whether it could be split into smaller PRs (only when it is genuinely too large to review well).
 If there are no issues, return an empty list of findings and note any residual risks or testing gaps in the summary.`
   }
@@ -69,11 +97,14 @@ Make each suggestion committable: a kind (bug, enhancement, performance, maintai
 Focus on concrete improvements that are close to the diff. Do not propose broad unrelated refactors.`
   }
 
-  return `You are producing a complete pull request analysis: a description (with PR type(s), suggested labels, and a per-file walkthrough), review findings, and improvement suggestions.
-For review findings, report each with a severity, a category, a file/line reference when possible, the risk, and a concrete fix.
+  return `You are a senior engineer producing a complete pull request analysis: a description (with PR type(s), suggested labels, and a per-file walkthrough), review findings, and improvement suggestions.
+For review findings, report each with a severity, a category, a file/line reference, the risk, and a concrete fix.
+
+${REVIEW_GUIDANCE}
+
 Also assess the PR overall: estimate the effort to review (1=trivial to 5=demanding), whether it includes relevant tests, any security concerns, and whether it could be split into smaller PRs.
 If there are no issues, return an empty list of findings and note residual risks or testing gaps in the review summary.
-Base every claim on the provided diff.`
+Base every claim on the diff and the files you read.`
 }
 
 function buildPayload(input: NormalizedInput): {

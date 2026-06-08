@@ -26,6 +26,25 @@ test("buildPrompt includes review instructions and diff", () => {
   expect(prompt).toContain("Add feature")
 })
 
+test("review prompt carries the calibrated review guidance", () => {
+  const prompt = buildPrompt("review", input)
+
+  // focus checklist dimensions
+  expect(prompt.toLowerCase()).toContain("concurrency")
+  expect(prompt.toLowerCase()).toContain("injection")
+  expect(prompt.toLowerCase()).toContain("resource")
+  // calibration + anti-nitpick + citation discipline
+  expect(prompt).toContain("concrete scenario")
+  expect(prompt.toLowerCase()).toContain("nitpick")
+  expect(prompt.toLowerCase()).toContain("backtick")
+})
+
+test("all prompt also carries the review guidance", () => {
+  const prompt = buildPrompt("all", { ...input, command: "all" })
+  expect(prompt).toContain("concrete scenario")
+  expect(prompt.toLowerCase()).toContain("concurrency")
+})
+
 test("buildPrompt for all covers description, review, and improvements", () => {
   const prompt = buildPrompt("all", { ...input, command: "all" }).toLowerCase()
 
