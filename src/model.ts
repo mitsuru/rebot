@@ -11,6 +11,8 @@ import { getModel } from "./provider"
 import type { RunResult } from "./types"
 
 export const DEFAULT_MAX_STEPS = 8
+export const DEFAULT_TIMEOUT_MS = 120_000
+export const DEFAULT_MAX_OUTPUT_TOKENS = 8192
 
 // Go subscription model (no zen balance required). Override with --model or REBOT_MODEL.
 export const DEFAULT_MODEL = "go/deepseek-v4-pro"
@@ -21,11 +23,15 @@ type GenerateFn = (options: {
   prompt: string
   tools?: ToolSet
   stopWhen?: StopCondition<ToolSet>
+  abortSignal?: AbortSignal
+  maxOutputTokens?: number
 }) => Promise<{ text: string }>
 type GenerateObjectFn = (options: {
   model: LanguageModel
   prompt: string
   schema: ZodType
+  abortSignal?: AbortSignal
+  maxOutputTokens?: number
 }) => Promise<{ object: unknown }>
 type ResolveModelFn = (
   modelId: string,
@@ -47,6 +53,8 @@ export interface RunModelObjectDeps extends ModelDeps {
   generateText?: GenerateFn
   tools?: ToolSet
   maxSteps?: number
+  timeoutMs?: number
+  maxOutputTokens?: number
 }
 
 function resolveModelId(deps: ModelDeps): string {
@@ -88,12 +96,17 @@ export async function runModelObject<T>(
   const genObject = deps.generateObject ?? ((options) => generateObject(options))
   const genText = deps.generateText ?? ((options) => generateText(options))
 
+  // Guardrails: bound total wall-clock time and per-call output tokens.
+  const abortSignal = AbortSignal.timeout(deps.timeoutMs ?? DEFAULT_TIMEOUT_MS)
+  const maxOutputTokens = deps.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS
+  const limits = { abortSignal, maxOutputTokens }
+
   // The native structured-output path cannot run a tool loop, so skip it when
   // tools are requested (the model needs to gather context before answering).
   if (!deps.tools) {
     try {
       const model = await resolveModel(modelId, { structuredOutputs: true })
-      const { object } = await genObject({ model, prompt, schema })
+      const { object } = await genObject({ model, prompt, schema, ...limits })
       return schema.parse(object)
     } catch {
       // Native structured output unavailable or non-conforming; fall back below.
@@ -107,12 +120,12 @@ export async function runModelObject<T>(
       ? { tools: deps.tools, stopWhen: stepCountIs(deps.maxSteps ?? DEFAULT_MAX_STEPS) }
       : {}
 
-    let text = (await genText({ model, prompt: schemaPrompt, ...toolOptions })).text
+    let text = (await genText({ model, prompt: schemaPrompt, ...limits, ...toolOptions })).text
     let validated = parseSchema(text, schema)
 
     if (!validated.success) {
       const repairPrompt = `${schemaPrompt}\n\nYour previous response was not valid (${validated.error}). Return ONLY corrected JSON.`
-      text = (await genText({ model, prompt: repairPrompt })).text
+      text = (await genText({ model, prompt: repairPrompt, ...limits })).text
       validated = parseSchema(text, schema)
     }
 

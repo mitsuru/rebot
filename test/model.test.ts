@@ -126,6 +126,40 @@ test("runModelObject passes tools to the fallback loop and skips the native path
   expect(obj).toEqual({ ok: true })
 })
 
+test("runModelObject applies time and token guardrails in the fallback path", async () => {
+  let seen: { abortSignal?: unknown; maxOutputTokens?: number | undefined } = {}
+
+  await runModelObject("p", z.object({ ok: z.boolean() }), {
+    tools: { grep: {} } as never,
+    resolveModel: async () => ({}) as never,
+    generateText: async ({ abortSignal, maxOutputTokens }) => {
+      seen = { abortSignal, maxOutputTokens }
+      return { text: '{"ok": true}' }
+    },
+  })
+
+  expect(seen.abortSignal).toBeInstanceOf(AbortSignal)
+  expect(typeof seen.maxOutputTokens).toBe("number")
+})
+
+test("runModelObject lets callers override token and step guardrails", async () => {
+  let seenMaxTokens = 0
+
+  await runModelObject("p", z.object({ ok: z.boolean() }), {
+    tools: { grep: {} } as never,
+    maxOutputTokens: 123,
+    maxSteps: 2,
+    timeoutMs: 5000,
+    resolveModel: async () => ({}) as never,
+    generateText: async ({ maxOutputTokens }) => {
+      seenMaxTokens = maxOutputTokens ?? 0
+      return { text: '{"ok": true}' }
+    },
+  })
+
+  expect(seenMaxTokens).toBe(123)
+})
+
 test("runModelObject strips markdown code fences in the fallback path", async () => {
   const obj = await runModelObject("p", z.object({ ok: z.boolean() }), {
     resolveModel: async () => ({}) as never,
