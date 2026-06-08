@@ -246,15 +246,23 @@ test("runCli wraps ask output as JSON with --json", async () => {
   expect(parsed.answer).toBe("because reasons")
 })
 
-test("runCli posts a PR comment with --comment", async () => {
+test("runCli posts a summary PR comment with --comment", async () => {
   const posted: Array<{ pr: number; command: string; body: string }> = []
+  const reviews: Array<{ pr: number; comments: unknown[] }> = []
   const stdout: string[] = []
   const code = await runCli(["review", "--pr", "7", "--comment"], {
     collectInput: async (options) => ({ command: options.command, source: "github-pr", diff: "diff" }),
-    analyze: async () => "# Review Findings\n\nNo findings.",
+    analyze: async (_command, _prompt, options) => {
+      expect(options?.format).toBe("json")
+      return '{"findings":[]}'
+    },
     postComment: async (opts) => {
       posted.push(opts)
       return { action: "created", id: 1, url: "https://x/1" }
+    },
+    postReview: async (opts) => {
+      reviews.push(opts)
+      return { count: opts.comments.length }
     },
     writeStdout: (text) => stdout.push(text),
     writeStderr: () => undefined,
@@ -262,9 +270,37 @@ test("runCli posts a PR comment with --comment", async () => {
 
   expect(code).toBe(0)
   expect(posted).toHaveLength(1)
-  expect(posted[0]).toEqual({ pr: 7, command: "review", body: "# Review Findings\n\nNo findings." })
+  expect(posted[0]?.pr).toBe(7)
+  expect(posted[0]?.command).toBe("review")
+  expect(posted[0]?.body).toContain("# Review Findings")
+  expect(reviews).toEqual([])
   expect(stdout.join("")).toContain("PR #7")
   expect(stdout.join("")).toContain("created")
+})
+
+test("runCli posts inline review comments for findings on diff lines", async () => {
+  const reviews: Array<{ pr: number; comments: Array<{ path: string; line: number }> }> = []
+  const diff = "--- a/src/a.ts\n+++ b/src/a.ts\n@@ -1,1 +1,2 @@\n+const a = 1\n+const b = 2\n"
+  const findingJson = JSON.stringify({
+    findings: [{ title: "bug", severity: "high", category: "correctness", file: "src/a.ts", startLine: 2, description: "d" }],
+  })
+  const code = await runCli(["review", "--pr", "7", "--comment"], {
+    collectInput: async (options) => ({ command: options.command, source: "github-pr", diff }),
+    analyze: async () => findingJson,
+    postComment: async () => ({ action: "created", id: 1 }),
+    postReview: async (opts) => {
+      reviews.push(opts)
+      return { count: opts.comments.length }
+    },
+    writeStdout: () => undefined,
+    writeStderr: () => undefined,
+  })
+
+  expect(code).toBe(0)
+  expect(reviews).toHaveLength(1)
+  expect(reviews[0]?.comments).toHaveLength(1)
+  expect(reviews[0]?.comments[0]?.path).toBe("src/a.ts")
+  expect(reviews[0]?.comments[0]?.line).toBe(2)
 })
 
 test("runCli rejects --comment without --pr", async () => {

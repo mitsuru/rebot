@@ -3,11 +3,19 @@ import { Command, CommanderError, InvalidArgumentError } from "commander"
 import { analyze as defaultAnalyze } from "./analyze"
 import { ask as defaultAsk } from "./ask"
 import { loadConfig as defaultLoadConfig, type RebotConfig } from "./config"
-import { postComment as defaultPostComment, type PostCommentResult } from "./github"
+import {
+  buildReviewComments,
+  postComment as defaultPostComment,
+  postReview as defaultPostReview,
+  type PostCommentResult,
+  type ReviewComment,
+} from "./github"
 import { collectInput as defaultCollectInput } from "./inputs"
 import { DEFAULT_MODEL, MODEL_ENV } from "./model"
 import { formatMarkdown } from "./output"
 import { buildAskPrompt, buildPrompt } from "./prompts"
+import { renderResult } from "./render"
+import type { ReviewFinding } from "./schema"
 import type { CliOptions, NormalizedInput, PullRequestMetadata, RebotCommand } from "./types"
 
 type RunCliInput = Omit<NormalizedInput, "base" | "diffFile" | "pr"> & {
@@ -22,6 +30,7 @@ interface RunCliDeps {
   ask?: (prompt: string, options?: RunOptions) => Promise<string>
   loadConfig?: () => Promise<RebotConfig>
   postComment?: (opts: { pr: number; command: string; body: string }) => Promise<PostCommentResult>
+  postReview?: (opts: { pr: number; comments: ReviewComment[] }) => Promise<{ count: number }>
   writeStdout?: (text: string) => void
   writeStderr?: (text: string) => void
   writeFile?: (path: string, content: string) => Promise<void>
@@ -59,6 +68,22 @@ function addSharedOptions(command: Command): Command {
     .option("--comment", "post the result as a PR comment (requires --pr)")
 }
 
+async function postInlineComments(
+  command: RebotCommand,
+  result: unknown,
+  diff: string,
+  pr: number,
+  postReview: (opts: { pr: number; comments: ReviewComment[] }) => Promise<{ count: number }>,
+): Promise<string> {
+  if (command !== "review" && command !== "all") return ""
+  const record = result as { findings?: ReviewFinding[]; review?: { findings?: ReviewFinding[] } }
+  const findings = (command === "all" ? record.review?.findings : record.findings) ?? []
+  const { comments } = buildReviewComments(findings, diff)
+  if (comments.length === 0) return ""
+  const posted = await postReview({ pr, comments })
+  return ` and ${posted.count} inline comment(s)`
+}
+
 function resolveRunOptions(
   cliOptions: CliOptions,
   config: RebotConfig,
@@ -92,6 +117,7 @@ export function createProgram(deps: RunCliDeps = {}): Command {
   const ask = deps.ask ?? defaultAsk
   const loadConfig = deps.loadConfig ?? defaultLoadConfig
   const postComment = deps.postComment ?? ((opts) => defaultPostComment(opts))
+  const postReview = deps.postReview ?? ((opts) => defaultPostReview(opts))
   const writeStdout = deps.writeStdout ?? ((text: string) => process.stdout.write(text))
   const writeStderr = deps.writeStderr ?? ((text: string) => process.stderr.write(text))
   const writeFile = deps.writeFile ?? (async (path: string, content: string) => void (await Bun.write(path, content)))
@@ -147,9 +173,25 @@ Shared Options:
         const input = normalizeInput(await collectInput(cliOptions))
         const prompt = buildPrompt(cliOptions.command, input)
         const runOptions = resolveRunOptions(cliOptions, config, process.env)
+
+        if (options.comment) {
+          if (cliOptions.pr === undefined) throw new Error("--comment requires --pr")
+          const result = JSON.parse(await analyze(cliOptions.command, prompt, { ...runOptions, format: "json" }))
+          const inline = await postInlineComments(cliOptions.command, result, input.diff, cliOptions.pr, postReview)
+          const posted = await postComment({
+            pr: cliOptions.pr,
+            command: cliOptions.command,
+            body: renderResult(cliOptions.command, result),
+          })
+          writeStdout(
+            `Posted ${cliOptions.command} comment to PR #${cliOptions.pr} (${posted.action})${inline}${posted.url ? `: ${posted.url}` : ""}\n`,
+          )
+          return
+        }
+
         if (options.json) runOptions.format = "json"
         const output = await analyze(cliOptions.command, prompt, runOptions)
-        await deliver(cliOptions.command, output, cliOptions, options)
+        await emit(output, options.output)
       },
     )
   }
