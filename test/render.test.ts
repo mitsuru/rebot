@@ -52,6 +52,28 @@ describe("renderReview", () => {
     expect(md).not.toContain("a.ts:5-")
   })
 
+  test("renders review-level metadata when present", () => {
+    const md = renderReview({
+      estimatedEffort: 4,
+      hasTests: false,
+      securityConcerns: ["unvalidated user input reaches a shell call"],
+      canBeSplit: "Separate the CLI change from the parser change.",
+      findings: [],
+    })
+
+    expect(md).toContain("4/5")
+    expect(md.toLowerCase()).toContain("security")
+    expect(md).toContain("unvalidated user input reaches a shell call")
+    expect(md.toLowerCase()).toContain("split")
+    expect(md.toLowerCase()).toContain("test")
+  })
+
+  test("omits review metadata that is not provided", () => {
+    const md = renderReview({ findings: [] })
+    expect(md).not.toContain("/5")
+    expect(md.toLowerCase()).not.toContain("estimated effort")
+  })
+
   test("omits the location when the finding has no file", () => {
     const md = renderReview({
       findings: [{ title: "X", severity: "high", category: "security", description: "d" }],

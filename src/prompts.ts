@@ -32,6 +32,7 @@ Base every claim on the provided diff.`
   if (command === "review") {
     return `You are reviewing a pull request for correctness, security, and other issues.
 Report each finding with a severity, a category, a file/line reference when possible, the risk it poses, and a concrete fix.
+Also assess the PR overall: estimate the effort to review (1=trivial to 5=demanding), whether it includes relevant tests, any security concerns, and whether it could be split into smaller PRs (only when it is genuinely too large to review well).
 If there are no issues, return an empty list of findings and note any residual risks or testing gaps in the summary.`
   }
 
@@ -43,6 +44,7 @@ Do not propose broad unrelated refactors.`
 
   return `You are producing a complete pull request analysis: a description, review findings, and improvement suggestions.
 For review findings, report each with a severity, a category, a file/line reference when possible, the risk, and a concrete fix.
+Also assess the PR overall: estimate the effort to review (1=trivial to 5=demanding), whether it includes relevant tests, any security concerns, and whether it could be split into smaller PRs.
 If there are no issues, return an empty list of findings and note residual risks or testing gaps in the review summary.
 Base every claim on the provided diff.`
 }

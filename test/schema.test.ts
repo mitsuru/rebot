@@ -57,6 +57,24 @@ describe("reviewResultSchema", () => {
     expect(result.success).toBe(false)
   })
 
+  test("accepts review-level metadata fields", () => {
+    const parsed = reviewResultSchema.parse({
+      estimatedEffort: 3,
+      hasTests: false,
+      securityConcerns: ["unvalidated input"],
+      canBeSplit: "Split the parser change from the formatting change.",
+      findings: [],
+    })
+
+    expect(parsed.estimatedEffort).toBe(3)
+    expect(parsed.securityConcerns).toEqual(["unvalidated input"])
+  })
+
+  test("rejects an estimatedEffort outside 1-5", () => {
+    expect(reviewResultSchema.safeParse({ estimatedEffort: 6, findings: [] }).success).toBe(false)
+    expect(reviewResultSchema.safeParse({ estimatedEffort: 0, findings: [] }).success).toBe(false)
+  })
+
   test("rejects a non-integer line", () => {
     const result = reviewResultSchema.safeParse({
       findings: [

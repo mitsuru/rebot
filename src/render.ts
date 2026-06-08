@@ -13,6 +13,9 @@ const SEVERITY_ORDER: Severity[] = ["critical", "high", "medium", "low", "info"]
 export function renderReview(result: ReviewResult): string {
   const parts: string[] = ["# Review Findings"]
 
+  const metadata = renderReviewMetadata(result)
+  if (metadata) parts.push(metadata)
+
   if (result.findings.length === 0) {
     parts.push("No findings.")
     if (result.summary) parts.push(result.summary)
@@ -29,6 +32,24 @@ export function renderReview(result: ReviewResult): string {
   }
 
   return parts.join("\n\n")
+}
+
+function renderReviewMetadata(result: ReviewResult): string | undefined {
+  const lines: string[] = []
+  if (result.estimatedEffort !== undefined) {
+    lines.push(`- **Estimated effort to review:** ${result.estimatedEffort}/5`)
+  }
+  if (result.hasTests !== undefined) {
+    lines.push(`- **Relevant tests:** ${result.hasTests ? "yes" : "no"}`)
+  }
+  if (result.securityConcerns && result.securityConcerns.length > 0) {
+    lines.push("- **Security concerns:**")
+    for (const concern of result.securityConcerns) lines.push(`  - ${concern}`)
+  }
+  if (result.canBeSplit) {
+    lines.push(`- **Can be split:** ${result.canBeSplit}`)
+  }
+  return lines.length > 0 ? lines.join("\n") : undefined
 }
 
 function renderFinding(finding: ReviewFinding): string {

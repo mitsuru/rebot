@@ -28,6 +28,10 @@ export const reviewFindingSchema = z.object({
 
 export const reviewResultSchema = z.object({
   summary: z.string().optional(),
+  estimatedEffort: z.number().int().min(1).max(5).optional(),
+  hasTests: z.boolean().optional(),
+  securityConcerns: z.array(z.string()).optional(),
+  canBeSplit: z.string().optional(),
   findings: z.array(reviewFindingSchema),
 })
 
