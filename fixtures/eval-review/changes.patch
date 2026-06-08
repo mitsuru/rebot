@@ -1,0 +1,23 @@
+diff --git a/server.ts b/server.ts
+new file mode 100644
+index 0000000..2222222
+--- /dev/null
++++ b/server.ts
+@@ -0,0 +1,17 @@
++import { open } from "node:fs/promises"
++import type { Database } from "./db"
++
++export function getUser(db: Database, name: string) {
++  // builds the query from the raw name
++  return db.query("SELECT * FROM users WHERE name = '" + name + "'")
++}
++
++export function firstUpper(items?: string[]): string {
++  return items[0].toUpperCase()
++}
++
++export async function readConfig(path: string): Promise<unknown> {
++  const file = await open(path)
++  const data = await file.readFile("utf8")
++  return JSON.parse(data)
++}
