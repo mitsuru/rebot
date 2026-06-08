@@ -26,7 +26,7 @@
     "github"
   ],
   "bin": {
-    "revoid": "./dist/revoid.js"
+    "revoid": "dist/revoid.js"
   },
   "files": [
     "dist",
