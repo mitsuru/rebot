@@ -67,16 +67,25 @@ async function readOpencodeGoKey(readAuthFile: () => Promise<string>): Promise<s
   }
 }
 
-export function createProvider(options: { apiKey: string; baseURL: string }) {
+export function createProvider(options: {
+  apiKey: string
+  baseURL: string
+  structuredOutputs?: boolean | undefined
+}) {
   return createOpenAICompatible({
     name: "zen",
     baseURL: options.baseURL,
     apiKey: options.apiKey,
+    supportsStructuredOutputs: options.structuredOutputs ?? false,
   })
 }
 
-export async function getModel(spec: string, deps: ResolveKeyDeps = {}) {
+export interface GetModelOptions {
+  structuredOutputs?: boolean
+}
+
+export async function getModel(spec: string, deps: ResolveKeyDeps = {}, options: GetModelOptions = {}) {
   const { baseURL, modelId } = parseModelSpec(spec)
   const apiKey = await resolveZenApiKey(deps)
-  return createProvider({ apiKey, baseURL })(modelId)
+  return createProvider({ apiKey, baseURL, structuredOutputs: options.structuredOutputs })(modelId)
 }

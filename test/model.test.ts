@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test"
-import { DEFAULT_MODEL, runModel } from "../src/model"
+import { z } from "zod"
+import { DEFAULT_MODEL, runModel, runModelObject } from "../src/model"
 
 test("runModel returns the generated text as markdown and passes prompt + resolved model", async () => {
   const seen: { id?: string; prompt?: string; model?: unknown } = {}
@@ -50,6 +51,99 @@ test("runModel resolves model id: deps.model > REBOT_MODEL env > DEFAULT_MODEL",
   await runModel("p", { model: "explicit", resolveModel, generate, env: { REBOT_MODEL: "env-model" } })
 
   expect(ids).toEqual(["env-model", DEFAULT_MODEL, "explicit"])
+})
+
+test("runModelObject uses the native generateObject path when it succeeds", async () => {
+  const seen: { id?: string; structuredOutputs?: boolean | undefined; schema?: unknown } = {}
+  let textCalls = 0
+  const schema = z.object({ ok: z.boolean() })
+
+  const obj = await runModelObject("hello", schema, {
+    model: "test-model",
+    resolveModel: async (id, options) => {
+      seen.id = id
+      seen.structuredOutputs = options?.structuredOutputs
+      return { id } as never
+    },
+    generateObject: async ({ schema: s }) => {
+      seen.schema = s
+      return { object: { ok: true } }
+    },
+    generateText: async () => {
+      textCalls++
+      return { text: "should not be called" }
+    },
+  })
+
+  expect(obj).toEqual({ ok: true })
+  expect(seen.id).toBe("test-model")
+  expect(seen.structuredOutputs).toBe(true)
+  expect(seen.schema).toBe(schema)
+  expect(textCalls).toBe(0)
+})
+
+test("runModelObject falls back to schema-in-prompt when native is unsupported", async () => {
+  let textPrompt = ""
+  const schema = z.object({ ok: z.boolean() })
+
+  const obj = await runModelObject("review this", schema, {
+    model: "go/deepseek-v4-pro",
+    resolveModel: async () => ({}) as never,
+    generateObject: async () => {
+      throw new Error("This response_format type is unavailable now")
+    },
+    generateText: async ({ prompt }) => {
+      textPrompt = prompt
+      return { text: '```json\n{"ok": true}\n```' }
+    },
+  })
+
+  expect(obj).toEqual({ ok: true })
+  expect(textPrompt).toContain("review this")
+  expect(textPrompt).toContain("JSON")
+})
+
+test("runModelObject repairs once when the first fallback response is invalid", async () => {
+  const texts = ["not json at all", '{"ok": true}']
+  let call = 0
+
+  const obj = await runModelObject("p", z.object({ ok: z.boolean() }), {
+    resolveModel: async () => ({}) as never,
+    generateObject: async () => {
+      throw new Error("unsupported")
+    },
+    generateText: async () => ({ text: texts[call++] as string }),
+  })
+
+  expect(obj).toEqual({ ok: true })
+  expect(call).toBe(2)
+})
+
+test("runModelObject resolves model id via env/default like runModel", async () => {
+  let usedId = ""
+
+  await runModelObject("p", z.object({}), {
+    resolveModel: async (id) => {
+      usedId = id
+      return {} as never
+    },
+    generateObject: async () => ({ object: {} }),
+    env: {},
+  })
+
+  expect(usedId).toBe(DEFAULT_MODEL)
+})
+
+test("runModelObject throws with context when fallback never validates", async () => {
+  await expect(
+    runModelObject("p", z.object({ ok: z.boolean() }), {
+      resolveModel: async () => ({}) as never,
+      generateObject: async () => {
+        throw new Error("unsupported")
+      },
+      generateText: async () => ({ text: "still not valid" }),
+    }),
+  ).rejects.toThrow(/Failed to run model prompt/)
 })
 
 test("runModel surfaces model errors with context", async () => {
