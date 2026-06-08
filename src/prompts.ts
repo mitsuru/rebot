@@ -1,4 +1,76 @@
+import { parseDiffFiles } from "./diff"
 import type { NormalizedInput, RebotCommand } from "./types"
+
+type Language = "TypeScript/JavaScript" | "Go" | "Python" | "Rust" | "Ruby"
+
+const EXTENSION_LANGUAGES: Record<string, Language> = {
+  ts: "TypeScript/JavaScript",
+  tsx: "TypeScript/JavaScript",
+  js: "TypeScript/JavaScript",
+  jsx: "TypeScript/JavaScript",
+  mjs: "TypeScript/JavaScript",
+  cjs: "TypeScript/JavaScript",
+  go: "Go",
+  py: "Python",
+  rs: "Rust",
+  rb: "Ruby",
+}
+
+const LANGUAGE_CHECKS: Record<Language, string[]> = {
+  "TypeScript/JavaScript": [
+    "floating promises and missing await; unhandled rejections",
+    "`any` or unsafe casts that hide real type errors",
+    "`==` vs `===` and truthiness pitfalls (0, '', NaN)",
+    "missing null/undefined checks and optional-chaining gaps",
+  ],
+  Go: [
+    "ignored errors (unchecked `err`, `_ =` on fallible calls)",
+    "goroutine leaks and missing context cancellation",
+    "nil pointer/map dereference and writes to a nil map",
+    "missing `defer` for Close/Unlock and loop-variable capture in closures",
+  ],
+  Python: [
+    "mutable default arguments",
+    "bare `except:` or swallowing exceptions",
+    "files/resources opened without a context manager (`with`)",
+    "shadowing builtins and integer-division surprises",
+  ],
+  Rust: [
+    "`unwrap()`/`expect()`/`panic!` on recoverable errors",
+    "ignored `Result`/`Option` and misuse of `?`",
+    "unnecessary `clone()` and borrow/lifetime issues",
+    "`unsafe` blocks without justification",
+  ],
+  Ruby: [
+    "nil dereference and missing safe navigation (`&.`)",
+    "rescuing `Exception` or overly broad rescues",
+    "SQL string interpolation (injection) and unsafe `eval`/`send`",
+    "mutating shared/global state",
+  ],
+}
+
+function detectLanguages(paths: string[]): Language[] {
+  const seen = new Set<Language>()
+  const ordered: Language[] = []
+  for (const path of paths) {
+    const ext = path.split(".").pop()?.toLowerCase() ?? ""
+    const language = EXTENSION_LANGUAGES[ext]
+    if (language && !seen.has(language)) {
+      seen.add(language)
+      ordered.push(language)
+    }
+  }
+  return ordered
+}
+
+function languageChecklist(input: NormalizedInput): string {
+  const languages = detectLanguages(parseDiffFiles(input.diff).map((file) => file.path))
+  if (languages.length === 0) return ""
+  const sections = languages.map(
+    (language) => `${language}:\n${LANGUAGE_CHECKS[language].map((item) => `- ${item}`).join("\n")}`,
+  )
+  return `\n\nLanguage-specific checks (for the languages changed in this PR):\n${sections.join("\n")}`
+}
 
 export const CONTEXT_GUIDANCE = `You can inspect the repository beyond the diff with two tools:
 - read_file(path): read a repository file (callers, definitions, types, related code)
@@ -36,9 +108,10 @@ Cite the exact file and line, use backticks for identifiers and paths, order fin
 
 export function buildPrompt(command: RebotCommand, input: NormalizedInput): string {
   const instruction = commandInstruction(command)
+  const extras = command === "review" || command === "all" ? languageChecklist(input) : ""
   const payload = buildPayload(input)
 
-  return `${instruction}
+  return `${instruction}${extras}
 
 ${untrustedInputBlock(payload)}
 `

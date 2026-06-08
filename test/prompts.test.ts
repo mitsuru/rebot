@@ -45,6 +45,33 @@ test("all prompt also carries the review guidance", () => {
   expect(prompt.toLowerCase()).toContain("concurrency")
 })
 
+test("review prompt injects language-specific checks for the languages in the diff", () => {
+  const tsDiff =
+    "diff --git a/src/x.ts b/src/x.ts\n--- a/src/x.ts\n+++ b/src/x.ts\n@@ -0,0 +1,1 @@\n+const x = 1\n"
+  const prompt = buildPrompt("review", { command: "review", source: "diff-file", diff: tsDiff })
+
+  expect(prompt).toContain("TypeScript")
+  expect(prompt.toLowerCase()).toContain("await")
+  // a language not in the diff is not injected
+  expect(prompt.toLowerCase()).not.toContain("goroutine")
+})
+
+test("review prompt injects Go and Python checks when both appear", () => {
+  const diff =
+    "diff --git a/a.go b/a.go\n--- a/a.go\n+++ b/a.go\n@@ -0,0 +1,1 @@\n+package main\n" +
+    "diff --git a/b.py b/b.py\n--- a/b.py\n+++ b/b.py\n@@ -0,0 +1,1 @@\n+x = 1\n"
+  const prompt = buildPrompt("review", { command: "review", source: "diff-file", diff }).toLowerCase()
+
+  expect(prompt).toContain("goroutine")
+  expect(prompt).toContain("mutable default")
+})
+
+test("describe prompt does not inject language checks", () => {
+  const tsDiff = "diff --git a/x.ts b/x.ts\n--- a/x.ts\n+++ b/x.ts\n@@ -0,0 +1,1 @@\n+const x = 1\n"
+  const prompt = buildPrompt("describe", { command: "describe", source: "diff-file", diff: tsDiff })
+  expect(prompt.toLowerCase()).not.toContain("floating promise")
+})
+
 test("buildPrompt for all covers description, review, and improvements", () => {
   const prompt = buildPrompt("all", { ...input, command: "all" }).toLowerCase()
 
