@@ -1,4 +1,8 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
+import { realpathSync } from "node:fs"
+import { mkdir, writeFile as fsWriteFile } from "node:fs/promises"
+import { dirname } from "node:path"
+import { fileURLToPath } from "node:url"
 import { Command, CommanderError, InvalidArgumentError } from "commander"
 import { analyze as defaultAnalyze } from "./analyze"
 import { ask as defaultAsk } from "./ask"
@@ -137,7 +141,12 @@ export function createProgram(deps: RunCliDeps = {}): Command {
   const postReview = deps.postReview ?? ((opts) => defaultPostReview(opts))
   const writeStdout = deps.writeStdout ?? ((text: string) => process.stdout.write(text))
   const writeStderr = deps.writeStderr ?? ((text: string) => process.stderr.write(text))
-  const writeFile = deps.writeFile ?? (async (path: string, content: string) => void (await Bun.write(path, content)))
+  const writeFile =
+    deps.writeFile ??
+    (async (path: string, content: string) => {
+      await mkdir(dirname(path), { recursive: true })
+      await fsWriteFile(path, content)
+    })
 
   const emit = async (content: string, output?: string): Promise<void> => {
     const final = formatMarkdown(content)
@@ -304,7 +313,17 @@ function normalizeInput(input: RunCliInput): NormalizedInput {
   return normalized
 }
 
-if (import.meta.main) {
-  const code = await runCli(Bun.argv.slice(2))
+function isMainModule(): boolean {
+  const entry = process.argv[1]
+  if (!entry) return false
+  try {
+    return realpathSync(entry) === fileURLToPath(import.meta.url)
+  } catch {
+    return false
+  }
+}
+
+if (isMainModule()) {
+  const code = await runCli(process.argv.slice(2))
   process.exit(code)
 }

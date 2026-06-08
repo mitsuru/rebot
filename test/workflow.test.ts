@@ -1,9 +1,10 @@
+import { readFile } from "node:fs/promises"
 import { expect, test } from "bun:test"
 
 // Guards the example GitHub Action against accidental breakage. It is not
 // executed here; CI in a consuming repo runs it.
 test("revoid workflow wires the review-on-PR job", async () => {
-  const yml = await Bun.file(".github/workflows/revoid.yml").text()
+  const yml = await readFile(".github/workflows/revoid.yml", "utf8")
 
   expect(yml).toContain("pull_request")
   expect(yml).toContain("pull-requests: write")

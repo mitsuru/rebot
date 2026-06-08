@@ -121,7 +121,8 @@ export async function postReview(
 async function defaultWriteTemp(content: string): Promise<string> {
   const { tmpdir } = await import("node:os")
   const { join } = await import("node:path")
+  const { writeFile } = await import("node:fs/promises")
   const path = join(tmpdir(), `revoid-review-${content.length}.json`)
-  await Bun.write(path, content)
+  await writeFile(path, content)
   return path
 }

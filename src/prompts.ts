@@ -1,3 +1,4 @@
+import picomatch from "picomatch"
 import { parseDiffFiles } from "./diff"
 import type { NormalizedInput, RevoidCommand } from "./types"
 
@@ -123,8 +124,8 @@ function matchedRules(input: NormalizedInput, rules: CustomRule[]): string {
   if (rules.length === 0) return ""
   const paths = parseDiffFiles(input.diff).map((file) => file.path)
   const matched = rules.filter((rule) => {
-    const glob = new Bun.Glob(rule.path)
-    return paths.some((path) => glob.match(path))
+    const isMatch = picomatch(rule.path)
+    return paths.some((path) => isMatch(path))
   })
   if (matched.length === 0) return ""
   const lines = matched.map((rule) => `- ${rule.name ? `(${rule.name}) ` : ""}${rule.guidance}`)

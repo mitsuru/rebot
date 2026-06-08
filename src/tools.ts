@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises"
+import { readdir, readFile, stat } from "node:fs/promises"
 import { isAbsolute, relative, resolve, sep } from "node:path"
 import { tool } from "ai"
 import { z } from "zod"
@@ -40,6 +40,25 @@ function isExcluded(relPath: string): boolean {
   return relPath.split(/[\\/]/).some((segment) => EXCLUDED_DIRS.has(segment))
 }
 
+/** Yield repository-relative file paths (posix separators), skipping dotfiles and excluded dirs. */
+async function* walkFiles(base: string, relDir = ""): AsyncGenerator<string> {
+  let entries
+  try {
+    entries = await readdir(resolve(base, relDir), { withFileTypes: true })
+  } catch {
+    return
+  }
+  for (const entry of entries) {
+    if (entry.name.startsWith(".")) continue // dot: false
+    if (entry.isDirectory()) {
+      if (EXCLUDED_DIRS.has(entry.name)) continue
+      yield* walkFiles(base, relDir ? `${relDir}/${entry.name}` : entry.name)
+    } else if (entry.isFile()) {
+      yield relDir ? `${relDir}/${entry.name}` : entry.name
+    }
+  }
+}
+
 export async function grepRepo(root: string, pattern: string, maxResults = MAX_GREP_RESULTS): Promise<string> {
   let regex: RegExp
   try {
@@ -49,18 +68,18 @@ export async function grepRepo(root: string, pattern: string, maxResults = MAX_G
   }
 
   const base = resolve(root)
-  const glob = new Bun.Glob("**/*")
   const matches: string[] = []
 
-  for await (const rel of glob.scan({ cwd: base, onlyFiles: true, dot: false })) {
+  for await (const rel of walkFiles(base)) {
     if (isExcluded(rel)) continue
     if (matches.length >= maxResults) break
 
     let text: string
     try {
-      const file = Bun.file(resolve(base, rel))
-      if (file.size > MAX_GREP_FILE_BYTES) continue
-      text = await file.text()
+      const target = resolve(base, rel)
+      const info = await stat(target)
+      if (info.size > MAX_GREP_FILE_BYTES) continue
+      text = await readFile(target, "utf8")
     } catch {
       continue
     }

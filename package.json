@@ -1,27 +1,61 @@
 {
   "name": "revoid",
   "version": "0.1.0",
-  "private": true,
+  "description": "AI-powered pull request review CLI — describe, review, and improve PRs via the Vercel AI SDK and the opencode zen gateway.",
   "type": "module",
+  "license": "MIT",
+  "author": "Mitsuru Hayasaka <10877+mitsuru@users.noreply.github.com>",
+  "homepage": "https://github.com/mitsuru/revoid#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mitsuru/revoid.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mitsuru/revoid/issues"
+  },
+  "keywords": [
+    "ai",
+    "code-review",
+    "pull-request",
+    "pr-agent",
+    "cli",
+    "llm",
+    "vercel-ai-sdk",
+    "opencode",
+    "git",
+    "github"
+  ],
   "bin": {
     "revoid": "./dist/revoid.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
   },
   "scripts": {
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "dev": "bun run src/cli.ts",
-    "build": "bun build src/cli.ts --target=bun --outfile dist/revoid.js && chmod +x dist/revoid.js",
-    "build:binary": "bun build src/cli.ts --compile --outfile revoid"
+    "build": "bun build src/cli.ts --target=node --outfile dist/revoid.js && chmod +x dist/revoid.js",
+    "build:binary": "bun build src/cli.ts --compile --outfile revoid",
+    "prepack": "bun run build"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.48",
     "ai": "^6.0.197",
     "commander": "^15.0.0",
+    "picomatch": "^4.0.4",
+    "smol-toml": "^1.6.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/json-schema": "^7.0.15",
+    "@types/picomatch": "^4.0.3",
     "typescript": "latest"
   }
 }

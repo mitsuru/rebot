@@ -5,33 +5,45 @@ through the [opencode zen](https://opencode.ai/zen) gateway.
 
 ## Requirements
 
-- Bun
+- Node.js 18 or newer
 - An opencode zen API key. Either set `REVOID_ZEN_API_KEY`, or sign in with
   `opencode auth login` so an `opencode-go` key is stored in
   `~/.local/share/opencode/auth.json`.
 - Git for local diff input
 - GitHub CLI (`gh`) for `--pr` input
 
-## Install Dependencies
+## Install
+
+Run it without installing:
 
 ```bash
-bun install
+npx revoid --help
 ```
 
-## Run in Development
+Or install globally:
 
 ```bash
-bun run src/cli.ts review --diff-file fixtures/sample.patch
-bun run src/cli.ts describe --pr 123
-bun run src/cli.ts improve --base main
-```
-
-## Help
-
-```bash
+npm install -g revoid
 revoid --help
-revoid review --help
+```
+
+```bash
+revoid review --diff-file fixtures/sample.patch
+revoid describe --pr 123
+revoid improve --base main
 revoid --version
+```
+
+## Development
+
+This repo uses [Bun](https://bun.sh) as the dev toolchain (test runner and
+bundler). Runtime output targets Node.js, so the published CLI needs only Node.
+
+```bash
+bun install                 # install dependencies
+bun run dev review --diff-file fixtures/sample.patch
+bun test                    # run the test suite
+bun run typecheck           # tsc --noEmit
 ```
 
 ## Build
@@ -40,13 +52,14 @@ revoid --version
 bun run build
 ```
 
-Creates `dist/revoid.js` (~1.2 MB), a bundle that runs with Bun:
+Creates `dist/revoid.js` (~1.2 MB), a Node-targeted bundle. It runs with plain
+Node:
 
 ```bash
-./dist/revoid.js --help   # or: bun dist/revoid.js --help
+node dist/revoid.js --help
 ```
 
-Bun is required at runtime (the CLI uses Bun APIs).
+`npm publish` builds this automatically via the `prepack` script.
 
 ### Standalone binary (optional)
 

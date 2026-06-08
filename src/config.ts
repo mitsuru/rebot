@@ -1,4 +1,6 @@
+import { readFile } from "node:fs/promises"
 import { join } from "node:path"
+import { parse as parseTomlText } from "smol-toml"
 import { z } from "zod"
 
 export const CONFIG_FILENAME = ".revoid.toml"
@@ -38,7 +40,7 @@ interface LoadConfigDeps {
 export async function loadConfig(deps: LoadConfigDeps = {}): Promise<RevoidConfig> {
   const cwd = deps.cwd ?? process.cwd()
   const read = deps.readConfigFile ?? defaultRead
-  const parseToml = deps.parseToml ?? ((text: string) => Bun.TOML.parse(text))
+  const parseToml = deps.parseToml ?? ((text: string) => parseTomlText(text))
 
   const text = await read(join(cwd, CONFIG_FILENAME))
   if (text === undefined) return {}
@@ -61,9 +63,7 @@ export async function loadConfig(deps: LoadConfigDeps = {}): Promise<RevoidConfi
 
 async function defaultRead(path: string): Promise<string | undefined> {
   try {
-    const file = Bun.file(path)
-    if (!(await file.exists())) return undefined
-    return await file.text()
+    return await readFile(path, "utf8")
   } catch {
     return undefined
   }
