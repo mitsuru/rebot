@@ -408,6 +408,36 @@ test("micro-optimizations are off by default", async () => {
   expect(prompt.toLowerCase()).not.toContain("micro-optimization")
 })
 
+test("runCli config prints the configuration reference and current config", async () => {
+  const stdout: string[] = []
+  const code = await runCli(["config"], {
+    loadConfig: async () => ({ model: "go/deepseek-v4-pro" }),
+    writeStdout: (text) => stdout.push(text),
+    writeStderr: () => undefined,
+  })
+
+  expect(code).toBe(0)
+  const out = stdout.join("")
+  expect(out).toContain("rebot configuration")
+  expect(out).toContain("[[rules]]")
+  expect(out).toContain("Current")
+  expect(out).toContain("go/deepseek-v4-pro")
+})
+
+test("runCli config --json emits a machine-readable reference", async () => {
+  const stdout: string[] = []
+  const code = await runCli(["config", "--json"], {
+    loadConfig: async () => ({ microOptimizations: true }),
+    writeStdout: (text) => stdout.push(text),
+    writeStderr: () => undefined,
+  })
+
+  expect(code).toBe(0)
+  const parsed = JSON.parse(stdout.join(""))
+  expect(parsed.reference.keys.map((k: { key: string }) => k.key)).toContain("rules")
+  expect(parsed.current.microOptimizations).toBe(true)
+})
+
 test("unknown options fail without invoking the model", async () => {
   const stderr: string[] = []
   const code = await runCli(["review", "--bogus"], {

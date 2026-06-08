@@ -2,7 +2,8 @@
 import { Command, CommanderError, InvalidArgumentError } from "commander"
 import { analyze as defaultAnalyze } from "./analyze"
 import { ask as defaultAsk } from "./ask"
-import { loadConfig as defaultLoadConfig, type RebotConfig } from "./config"
+import { CONFIG_FILENAME, loadConfig as defaultLoadConfig, type RebotConfig } from "./config"
+import { configReference, configReferenceData } from "./configref"
 import {
   buildReviewComments,
   postComment as defaultPostComment,
@@ -233,6 +234,23 @@ Shared Options:
     const output = options.json ? JSON.stringify({ answer }, null, 2) : answer
     await deliver("ask", output, cliOptions, options)
   })
+
+  program
+    .command("config")
+    .description("show the configuration and rules reference")
+    .option("--json", "output the reference as JSON")
+    .action(async (options: { json?: boolean }) => {
+      const current = await loadConfig()
+      if (options.json) {
+        writeStdout(`${JSON.stringify({ reference: configReferenceData(), current }, null, 2)}\n`)
+        return
+      }
+      const body =
+        Object.keys(current).length > 0
+          ? `${configReference()}\n\n## Current ${CONFIG_FILENAME}\n\n\`\`\`json\n${JSON.stringify(current, null, 2)}\n\`\`\``
+          : configReference()
+      writeStdout(formatMarkdown(body))
+    })
 
   return program
 }

@@ -66,6 +66,7 @@ large (~100 MB) because it embeds the Bun runtime.
 - `rebot changelog`: produce a changelog entry
 - `rebot labels`: suggest labels for a PR
 - `rebot ask "<question>"`: answer a question about a PR or diff
+- `rebot config`: print the configuration and rules reference (`--json` for machine-readable)
 
 ## Input Sources
 
@@ -136,6 +137,18 @@ maxOutputTokens = 8192
 the diff (TypeScript/JavaScript, Go, Python, Rust, Ruby). Micro-optimization
 findings are off by default; enable them with `--micro-opt` or
 `microOptimizations = true`.
+
+Path-based rules attach review guidance to files matching a glob:
+
+```toml
+[[rules]]
+path = "src/api/**"
+guidance = "Verify authentication and authorization on every endpoint."
+name = "api"
+```
+
+Run `rebot config` for the full reference (or `rebot config --json` for a
+machine-readable form an agent can consume).
 
 Diffs larger than `maxDiffTokens` are reduced before review: noise files
 (lockfiles, build output, snapshots) are dropped first, then remaining files are
