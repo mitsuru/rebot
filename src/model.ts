@@ -1,5 +1,5 @@
 import { generateText, type LanguageModel } from "ai"
-import { getZenModel } from "./provider"
+import { getModel } from "./provider"
 import type { RunResult } from "./types"
 
 // Sonnet balances review quality and cost. Override per-run with --model or REBOT_MODEL.
@@ -18,7 +18,7 @@ interface RunModelDeps {
 export async function runModel(prompt: string, deps: RunModelDeps = {}): Promise<RunResult> {
   const envModel = (deps.env ?? process.env)[MODEL_ENV]?.trim()
   const modelId = deps.model ?? (envModel || DEFAULT_MODEL)
-  const resolveModel = deps.resolveModel ?? ((id: string) => getZenModel(id))
+  const resolveModel = deps.resolveModel ?? ((id: string) => getModel(id))
   const generate = deps.generate ?? ((options) => generateText(options))
 
   try {

@@ -42,7 +42,7 @@ Shared Options:
   --diff-file <path>  read diff from a file
   --pr <number>       read diff from a GitHub pull request
   --base <ref>        diff the current worktree against a base ref
-  --model <id>        model id to use (default: ${DEFAULT_MODEL}; or set ${MODEL_ENV})`,
+  --model <id>        model id, optional go/ or zen/ prefix (default: ${DEFAULT_MODEL}; or set ${MODEL_ENV})`,
     )
     .exitOverride()
     .configureOutput({
@@ -58,7 +58,7 @@ Shared Options:
       .option("--diff-file <path>", "read diff from a file")
       .option("--pr <number>", "read diff from a GitHub pull request", parsePositiveInteger)
       .option("--base <ref>", "diff the current worktree against a base ref")
-      .option("--model <id>", `model id to use (default: ${DEFAULT_MODEL}; or set ${MODEL_ENV})`)
+      .option("--model <id>", `model id, optional go/ or zen/ prefix (default: ${DEFAULT_MODEL}; or set ${MODEL_ENV})`)
       .action(async (options: { diffFile?: string; pr?: number; base?: string; model?: string }) => {
         const cliOptions = normalizeCliOptions(commandConfig.name, options)
         const input = normalizeInput(await collectInput(cliOptions))

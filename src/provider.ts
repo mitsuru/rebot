@@ -4,7 +4,30 @@ import { join } from "node:path"
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
 
 export const ZEN_BASE_URL = "https://opencode.ai/zen/v1"
+export const GO_BASE_URL = "https://opencode.ai/zen/go/v1"
 export const ZEN_API_KEY_ENV = "REBOT_ZEN_API_KEY"
+
+const PREFIX_BASE_URLS: Record<string, string> = {
+  zen: ZEN_BASE_URL,
+  opencode: ZEN_BASE_URL,
+  go: GO_BASE_URL,
+  "opencode-go": GO_BASE_URL,
+}
+
+export interface ModelSpec {
+  baseURL: string
+  modelId: string
+}
+
+export function parseModelSpec(spec: string): ModelSpec {
+  const slash = spec.indexOf("/")
+  if (slash > 0) {
+    const prefix = spec.slice(0, slash)
+    const baseURL = PREFIX_BASE_URLS[prefix]
+    if (baseURL) return { baseURL, modelId: spec.slice(slash + 1) }
+  }
+  return { baseURL: ZEN_BASE_URL, modelId: spec }
+}
 
 const DEFAULT_AUTH_PATH = join(homedir(), ".local", "share", "opencode", "auth.json")
 
@@ -44,15 +67,16 @@ async function readOpencodeGoKey(readAuthFile: () => Promise<string>): Promise<s
   }
 }
 
-export function createZenProvider(options: { apiKey: string; baseURL?: string }) {
+export function createProvider(options: { apiKey: string; baseURL: string }) {
   return createOpenAICompatible({
     name: "zen",
-    baseURL: options.baseURL ?? ZEN_BASE_URL,
+    baseURL: options.baseURL,
     apiKey: options.apiKey,
   })
 }
 
-export async function getZenModel(modelId: string, deps: ResolveKeyDeps = {}) {
+export async function getModel(spec: string, deps: ResolveKeyDeps = {}) {
+  const { baseURL, modelId } = parseModelSpec(spec)
   const apiKey = await resolveZenApiKey(deps)
-  return createZenProvider({ apiKey })(modelId)
+  return createProvider({ apiKey, baseURL })(modelId)
 }

@@ -60,15 +60,25 @@ Input selection order:
 
 ## Model Selection
 
-Every command accepts `--model <id>` (zen model ids are bare, e.g.
-`claude-sonnet-4-6`, `gpt-5.4`). Resolution order:
+Every command accepts `--model <id>`. Resolution order:
 
 1. `--model <id>`
 2. `REBOT_MODEL` environment variable
 3. default `claude-sonnet-4-6`
 
+Models live on two opencode gateways. Select one with a prefix (no prefix
+defaults to zen):
+
+| Prefix | Gateway | Examples |
+| --- | --- | --- |
+| `zen/` (default) | OpenCode Zen | `claude-sonnet-4-6`, `gpt-5.4`, `deepseek-v4-flash` |
+| `go/` | OpenCode Go | `deepseek-v4-pro`, `qwen3.7-max`, `mimo-v2.5-pro` |
+
+`opencode/` and `opencode-go/` work as aliases for `zen/` and `go/`.
+
 ```bash
 rebot review --diff-file fixtures/sample.patch --model gpt-5.4
+rebot review --diff-file fixtures/sample.patch --model go/deepseek-v4-pro
 ```
 
 The first version prints Markdown to stdout and does not post comments to GitHub.
