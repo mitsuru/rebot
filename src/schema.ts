@@ -35,9 +35,27 @@ export const reviewResultSchema = z.object({
   findings: z.array(reviewFindingSchema),
 })
 
+export const prTypeSchema = z.enum([
+  "bugfix",
+  "enhancement",
+  "docs",
+  "tests",
+  "refactor",
+  "chore",
+  "other",
+])
+
+export const walkthroughEntrySchema = z.object({
+  path: z.string(),
+  summary: z.string(),
+})
+
 export const describeResultSchema = z.object({
   summary: z.string(),
+  prTypes: z.array(prTypeSchema).optional(),
+  labels: z.array(z.string()).optional(),
   changedAreas: z.array(z.string()),
+  walkthrough: z.array(walkthroughEntrySchema).optional(),
   notableDetails: z.array(z.string()),
   suggestedTestFocus: z.array(z.string()),
 })

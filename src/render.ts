@@ -74,17 +74,32 @@ function formatLocation(file?: string, startLine?: number, endLine?: number): st
 }
 
 export function renderDescribe(result: DescribeResult): string {
-  return [
-    "# Description",
-    "## Summary",
-    result.summary,
-    "## Changed Areas",
-    renderList(result.changedAreas),
+  const sections: string[] = ["# Description"]
+
+  if (result.prTypes && result.prTypes.length > 0) {
+    sections.push("## Type", result.prTypes.join(", "))
+  }
+  if (result.labels && result.labels.length > 0) {
+    sections.push("## Labels", result.labels.join(", "))
+  }
+
+  sections.push("## Summary", result.summary, "## Changed Areas", renderList(result.changedAreas))
+
+  if (result.walkthrough && result.walkthrough.length > 0) {
+    sections.push(
+      "## Walkthrough",
+      result.walkthrough.map((entry) => `- \`${entry.path}\` — ${entry.summary}`).join("\n"),
+    )
+  }
+
+  sections.push(
     "## Notable Implementation Details",
     renderList(result.notableDetails),
     "## Suggested Test Focus",
     renderList(result.suggestedTestFocus),
-  ].join("\n\n")
+  )
+
+  return sections.join("\n\n")
 }
 
 function renderList(items: string[]): string {

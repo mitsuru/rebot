@@ -107,6 +107,33 @@ describe("describeResultSchema", () => {
 
     expect(result.success).toBe(false)
   })
+
+  test("accepts pr types, labels, and a walkthrough", () => {
+    const parsed = describeResultSchema.parse({
+      summary: "s",
+      prTypes: ["enhancement", "tests"],
+      labels: ["cli"],
+      walkthrough: [{ path: "src/cli.ts", summary: "add --model option" }],
+      changedAreas: [],
+      notableDetails: [],
+      suggestedTestFocus: [],
+    })
+
+    expect(parsed.prTypes).toEqual(["enhancement", "tests"])
+    expect(parsed.walkthrough?.[0]?.path).toBe("src/cli.ts")
+  })
+
+  test("rejects an unknown pr type", () => {
+    const result = describeResultSchema.safeParse({
+      summary: "s",
+      prTypes: ["wat"],
+      changedAreas: [],
+      notableDetails: [],
+      suggestedTestFocus: [],
+    })
+
+    expect(result.success).toBe(false)
+  })
 })
 
 describe("improveResultSchema", () => {

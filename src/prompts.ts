@@ -25,7 +25,7 @@ ${JSON.stringify(payload, null, 2)}
 function commandInstruction(command: RebotCommand): string {
   if (command === "describe") {
     return `You are generating a pull request description.
-Produce a concise summary, the changed areas, notable implementation details, and suggested test focus.
+Produce a concise summary, the PR type(s) (bugfix, enhancement, docs, tests, refactor, chore, other), suggested labels, the changed areas, a per-file walkthrough (path and what changed), notable implementation details, and suggested test focus.
 Base every claim on the provided diff.`
   }
 
@@ -42,7 +42,7 @@ Focus on concrete improvements that are close to the diff, with a file reference
 Do not propose broad unrelated refactors.`
   }
 
-  return `You are producing a complete pull request analysis: a description, review findings, and improvement suggestions.
+  return `You are producing a complete pull request analysis: a description (with PR type(s), suggested labels, and a per-file walkthrough), review findings, and improvement suggestions.
 For review findings, report each with a severity, a category, a file/line reference when possible, the risk, and a concrete fix.
 Also assess the PR overall: estimate the effort to review (1=trivial to 5=demanding), whether it includes relevant tests, any security concerns, and whether it could be split into smaller PRs.
 If there are no issues, return an empty list of findings and note residual risks or testing gaps in the review summary.

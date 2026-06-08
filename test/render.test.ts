@@ -100,6 +100,26 @@ describe("renderDescribe", () => {
     expect(md).toContain("overflow")
   })
 
+  test("renders pr types, labels, and walkthrough when present", () => {
+    const md = renderDescribe({
+      summary: "s",
+      prTypes: ["enhancement", "tests"],
+      labels: ["cli"],
+      walkthrough: [{ path: "src/cli.ts", summary: "add --model option" }],
+      changedAreas: ["src/cli.ts"],
+      notableDetails: [],
+      suggestedTestFocus: [],
+    })
+
+    expect(md.toLowerCase()).toContain("type")
+    expect(md).toContain("enhancement")
+    expect(md.toLowerCase()).toContain("label")
+    expect(md).toContain("cli")
+    expect(md.toLowerCase()).toContain("walkthrough")
+    expect(md).toContain("src/cli.ts")
+    expect(md).toContain("add --model option")
+  })
+
   test("marks empty sections with _None_", () => {
     const md = renderDescribe({
       summary: "s",
