@@ -1,8 +1,8 @@
-# rebot CLI Help Implementation Plan
+# revoid CLI Help Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add standard `commander`-based help and version output to `rebot` while preserving existing workflow behavior.
+**Goal:** Add standard `commander`-based help and version output to `revoid` while preserving existing workflow behavior.
 
 **Architecture:** Replace the hand-written CLI parser in `src/cli.ts` with a small `createProgram()` function using `commander`. `runCli()` remains the testable entry point and injects input collection, opencode execution, stdout, and stderr dependencies.
 
@@ -91,7 +91,7 @@ test("top-level help includes commands and shared options", async () => {
 
   expect(code).toBe(0)
   expect(stderr).toEqual([])
-  expect(stdout.join("")).toContain("Usage: rebot [options] [command]")
+  expect(stdout.join("")).toContain("Usage: revoid [options] [command]")
   expect(stdout.join("")).toContain("describe")
   expect(stdout.join("")).toContain("review")
   expect(stdout.join("")).toContain("--diff-file <path>")
@@ -113,7 +113,7 @@ test("command help includes command description and shared options", async () =>
   })
 
   expect(code).toBe(0)
-  expect(stdout.join("")).toContain("Usage: rebot review [options]")
+  expect(stdout.join("")).toContain("Usage: revoid review [options]")
   expect(stdout.join("")).toContain("produce review findings")
   expect(stdout.join("")).toContain("--diff-file <path>")
   expect(stdout.join("")).toContain("--pr <number>")
@@ -194,7 +194,7 @@ import { collectInput as defaultCollectInput } from "./inputs"
 import { runOpencodePrompt as defaultRunOpencodePrompt } from "./opencode"
 import { formatMarkdown } from "./output"
 import { buildPrompt } from "./prompts"
-import type { CliOptions, NormalizedInput, PullRequestMetadata, RebotCommand, RunResult } from "./types"
+import type { CliOptions, NormalizedInput, PullRequestMetadata, RevoidCommand, RunResult } from "./types"
 
 const version = "0.1.0"
 
@@ -239,7 +239,7 @@ export async function runCli(args: string[], deps: RunCliDeps = {}): Promise<num
     if (error instanceof CommanderError) return error.exitCode
     const message = error instanceof Error ? error.message : String(error)
     const writeStderr = deps.writeStderr ?? ((text: string) => process.stderr.write(text))
-    writeStderr(`rebot: ${message}\n`)
+    writeStderr(`revoid: ${message}\n`)
     return 1
   }
 
@@ -249,7 +249,7 @@ export async function runCli(args: string[], deps: RunCliDeps = {}): Promise<num
 export function createProgram(deps: ProgramDeps): Command {
   const program = new Command()
   program
-    .name("rebot")
+    .name("revoid")
     .description("PR-Agent-like CLI powered by opencode")
     .version(version)
     .exitOverride()
@@ -266,7 +266,7 @@ export function createProgram(deps: ProgramDeps): Command {
   return program
 }
 
-function addWorkflowCommand(program: Command, command: RebotCommand, description: string, deps: ProgramDeps): void {
+function addWorkflowCommand(program: Command, command: RevoidCommand, description: string, deps: ProgramDeps): void {
   program
     .command(command)
     .description(description)
@@ -302,7 +302,7 @@ async function runWorkflow(options: CliOptions, deps: ProgramDeps): Promise<void
     deps.writeStdout(formatMarkdown(result.markdown))
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    deps.writeStderr(`rebot: ${message}\n`)
+    deps.writeStderr(`revoid: ${message}\n`)
     deps.setExitCode(1)
   }
 }
@@ -369,9 +369,9 @@ Modify `README.md` to add this section after the development examples:
 ## Help
 
 ```bash
-rebot --help
-rebot review --help
-rebot --version
+revoid --help
+revoid review --help
+revoid --version
 ```
 ```
 
@@ -399,30 +399,30 @@ Run:
 mise exec -- bun run build
 ```
 
-Expected: PASS and `./rebot` exists.
+Expected: PASS and `./revoid` exists.
 
 - [ ] **Step 3: Smoke test compiled help and version**
 
 Run:
 
 ```bash
-./rebot --help
+./revoid --help
 ```
 
-Expected: exit `0`, output includes `Usage: rebot [options] [command]` and `review`.
+Expected: exit `0`, output includes `Usage: revoid [options] [command]` and `review`.
 
 Run:
 
 ```bash
-./rebot review --help
+./revoid review --help
 ```
 
-Expected: exit `0`, output includes `Usage: rebot review [options]` and `--pr <number>`.
+Expected: exit `0`, output includes `Usage: revoid review [options]` and `--pr <number>`.
 
 Run:
 
 ```bash
-./rebot --version
+./revoid --version
 ```
 
 Expected: exit `0`, output is `0.1.0`.
@@ -430,7 +430,7 @@ Expected: exit `0`, output is `0.1.0`.
 Run:
 
 ```bash
-./rebot review --bogus
+./revoid review --bogus
 ```
 
 Expected: non-zero exit, stderr includes `unknown option`.
@@ -440,7 +440,7 @@ Expected: non-zero exit, stderr includes `unknown option`.
 Run:
 
 ```bash
-rm -f ./rebot
+rm -f ./revoid
 git add README.md
 git commit -m "docs: document cli help"
 ```

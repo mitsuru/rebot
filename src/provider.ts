@@ -5,7 +5,7 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
 
 export const ZEN_BASE_URL = "https://opencode.ai/zen/v1"
 export const GO_BASE_URL = "https://opencode.ai/zen/go/v1"
-export const ZEN_API_KEY_ENV = "REBOT_ZEN_API_KEY"
+export const ZEN_API_KEY_ENV = "REVOID_ZEN_API_KEY"
 
 const PREFIX_BASE_URLS: Record<string, string> = {
   zen: ZEN_BASE_URL,

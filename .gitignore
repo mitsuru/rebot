@@ -1,6 +1,6 @@
 .worktrees/
 node_modules/
-/rebot
+/revoid
 /dist/
 
 # Beads / Dolt files (added by bd init)

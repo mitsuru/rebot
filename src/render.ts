@@ -8,7 +8,7 @@ import type {
   ReviewResult,
   Severity,
 } from "./schema"
-import type { RebotCommand } from "./types"
+import type { RevoidCommand } from "./types"
 
 const CHANGELOG_CATEGORIES: Array<{ type: ChangelogResult["entries"][number]["type"]; heading: string }> = [
   { type: "added", heading: "Added" },
@@ -168,7 +168,7 @@ export function renderAll(result: AllResult): string {
   ].join("\n\n")
 }
 
-export function renderResult(command: RebotCommand, result: unknown): string {
+export function renderResult(command: RevoidCommand, result: unknown): string {
   switch (command) {
     case "describe":
       return renderDescribe(result as DescribeResult)

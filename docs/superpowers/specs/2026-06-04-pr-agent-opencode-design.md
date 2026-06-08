@@ -1,8 +1,8 @@
-# rebot Design
+# revoid Design
 
 ## Summary
 
-`rebot` is a standalone CLI automation tool that provides a PR-Agent-like workflow using opencode. It is implemented in TypeScript, uses the official `@opencode-ai/sdk`, and is distributed as a single executable with `bun build --compile`.
+`revoid` is a standalone CLI automation tool that provides a PR-Agent-like workflow using opencode. It is implemented in TypeScript, uses the official `@opencode-ai/sdk`, and is distributed as a single executable with `bun build --compile`.
 
 The first version focuses on local Markdown output for three workflows:
 
@@ -31,23 +31,23 @@ It supports both GitHub PR input through `gh` and local git diff input.
 
 ## CLI Interface
 
-The binary is named `rebot` as a provisional name.
+The binary is named `revoid` as a provisional name.
 
 Commands:
 
 ```bash
-rebot describe
-rebot review
-rebot improve
-rebot all
+revoid describe
+revoid review
+revoid improve
+revoid all
 ```
 
 Input options:
 
 ```bash
-rebot review --pr 123
-rebot review --base main
-rebot review --diff-file diff.patch
+revoid review --pr 123
+revoid review --base main
+revoid review --diff-file diff.patch
 ```
 
 Input selection order:
@@ -151,7 +151,7 @@ bun run src/cli.ts review --diff-file fixtures/sample.patch
 Build command:
 
 ```bash
-bun build src/cli.ts --compile --outfile rebot
+bun build src/cli.ts --compile --outfile revoid
 ```
 
 The compiled executable is the intended distribution artifact.

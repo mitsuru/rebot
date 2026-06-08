@@ -1,5 +1,5 @@
 import { z } from "zod"
-import type { RebotCommand } from "./types"
+import type { RevoidCommand } from "./types"
 
 export const severitySchema = z.enum(["critical", "high", "medium", "low", "info"])
 export const categorySchema = z.enum([
@@ -129,6 +129,6 @@ const SCHEMAS = {
   labels: labelsResultSchema,
 } as const
 
-export function resultSchemaFor(command: RebotCommand) {
+export function resultSchemaFor(command: RevoidCommand) {
   return SCHEMAS[command]
 }

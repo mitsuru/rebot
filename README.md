@@ -1,12 +1,12 @@
-# rebot
+# revoid
 
-`rebot` is a PR-Agent-like CLI powered by the Vercel AI SDK, calling models
+`revoid` is a PR-Agent-like CLI powered by the Vercel AI SDK, calling models
 through the [opencode zen](https://opencode.ai/zen) gateway.
 
 ## Requirements
 
 - Bun
-- An opencode zen API key. Either set `REBOT_ZEN_API_KEY`, or sign in with
+- An opencode zen API key. Either set `REVOID_ZEN_API_KEY`, or sign in with
   `opencode auth login` so an `opencode-go` key is stored in
   `~/.local/share/opencode/auth.json`.
 - Git for local diff input
@@ -29,9 +29,9 @@ bun run src/cli.ts improve --base main
 ## Help
 
 ```bash
-rebot --help
-rebot review --help
-rebot --version
+revoid --help
+revoid review --help
+revoid --version
 ```
 
 ## Build
@@ -40,10 +40,10 @@ rebot --version
 bun run build
 ```
 
-Creates `dist/rebot.js` (~1.2 MB), a bundle that runs with Bun:
+Creates `dist/revoid.js` (~1.2 MB), a bundle that runs with Bun:
 
 ```bash
-./dist/rebot.js --help   # or: bun dist/rebot.js --help
+./dist/revoid.js --help   # or: bun dist/revoid.js --help
 ```
 
 Bun is required at runtime (the CLI uses Bun APIs).
@@ -54,19 +54,19 @@ Bun is required at runtime (the CLI uses Bun APIs).
 bun run build:binary
 ```
 
-Creates `./rebot`, a self-contained executable that needs no runtime. It is
+Creates `./revoid`, a self-contained executable that needs no runtime. It is
 large (~100 MB) because it embeds the Bun runtime.
 
 ## Commands
 
-- `rebot describe`: summarize a PR or diff
-- `rebot review`: produce review findings
-- `rebot improve`: suggest improvements
-- `rebot all`: produce description, review findings, and improvements
-- `rebot changelog`: produce a changelog entry
-- `rebot labels`: suggest labels for a PR
-- `rebot ask "<question>"`: answer a question about a PR or diff
-- `rebot config`: print the configuration and rules reference (`--json` for machine-readable)
+- `revoid describe`: summarize a PR or diff
+- `revoid review`: produce review findings
+- `revoid improve`: suggest improvements
+- `revoid all`: produce description, review findings, and improvements
+- `revoid changelog`: produce a changelog entry
+- `revoid labels`: suggest labels for a PR
+- `revoid ask "<question>"`: answer a question about a PR or diff
+- `revoid config`: print the configuration and rules reference (`--json` for machine-readable)
 
 ## Input Sources
 
@@ -82,7 +82,7 @@ Input selection order:
 Every command accepts `--model <id>`. Resolution order:
 
 1. `--model <id>`
-2. `REBOT_MODEL` environment variable
+2. `REVOID_MODEL` environment variable
 3. default `claude-sonnet-4-6`
 
 Models live on two opencode gateways. Select one with a prefix (no prefix
@@ -96,13 +96,13 @@ defaults to zen):
 `opencode/` and `opencode-go/` work as aliases for `zen/` and `go/`.
 
 ```bash
-rebot review --diff-file fixtures/sample.patch --model gpt-5.4
-rebot review --diff-file fixtures/sample.patch --model go/deepseek-v4-pro
+revoid review --diff-file fixtures/sample.patch --model gpt-5.4
+revoid review --diff-file fixtures/sample.patch --model go/deepseek-v4-pro
 ```
 
 ## Repository Context
 
-By default rebot gives the model `read_file` and `grep` tools rooted at the
+By default revoid gives the model `read_file` and `grep` tools rooted at the
 current directory, so it can inspect code beyond the diff (callers, definitions,
 types) before reporting. Disable this with `--no-context`.
 
@@ -114,11 +114,11 @@ lives outside the diff:
 bun run scripts/eval-context.ts
 ```
 
-With context on, rebot catches the cross-file bug; with it off, it cannot.
+With context on, revoid catches the cross-file bug; with it off, it cannot.
 
 ## Configuration
 
-Defaults can be set in a `.rebot.toml` in the working directory. Precedence is
+Defaults can be set in a `.revoid.toml` in the working directory. Precedence is
 CLI flag > environment variable > config file > built-in default.
 
 ```toml
@@ -147,7 +147,7 @@ guidance = "Verify authentication and authorization on every endpoint."
 name = "api"
 ```
 
-Run `rebot config` for the full reference (or `rebot config --json` for a
+Run `revoid config` for the full reference (or `revoid config --json` for a
 machine-readable form an agent can consume).
 
 Diffs larger than `maxDiffTokens` are reduced before review: noise files
@@ -165,15 +165,15 @@ kept until the budget is reached, and the omitted files are noted in the prompt.
 `--comment` posts the result to a PR (requires `--pr` and the `gh` CLI):
 
 ```bash
-rebot review --pr 123 --comment
+revoid review --pr 123 --comment
 ```
 
 The summary is posted as a single comment and updated in place on re-runs (it
-carries a hidden `<!-- rebot:<command> -->` marker). For `review`/`all`, findings
+carries a hidden `<!-- revoid:<command> -->` marker). For `review`/`all`, findings
 that land on changed lines are also posted as inline review comments.
 
 ### GitHub Action
 
-`.github/workflows/rebot.yml` runs `rebot review --pr <n> --comment` on every
-pull request. Add a `REBOT_ZEN_API_KEY` repository secret; the default
+`.github/workflows/revoid.yml` runs `revoid review --pr <n> --comment` on every
+pull request. Add a `REVOID_ZEN_API_KEY` repository secret; the default
 `GITHUB_TOKEN` lets `gh` post comments (`pull-requests: write`).

@@ -101,7 +101,7 @@ export function configReference(): string {
     .map((key) => `| \`${key.key}\` | ${key.type} | ${key.default} | ${key.description} |`)
     .join("\n")
 
-  return `# rebot configuration
+  return `# revoid configuration
 
 Settings live in \`${data.file}\` in the working directory. Precedence: CLI flag > environment variable > config file > built-in default.
 

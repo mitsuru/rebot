@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { loadConfig } from "../src/config"
 
 describe("loadConfig", () => {
-  test("parses and validates a .rebot.toml", async () => {
+  test("parses and validates a .revoid.toml", async () => {
     const cfg = await loadConfig({
       readConfigFile: async () =>
         'model = "go/deepseek-v4-pro"\ncontext = false\n[guardrails]\nmaxSteps = 5\n',
@@ -36,7 +36,7 @@ describe("loadConfig", () => {
   test("rejects a rule without guidance", async () => {
     await expect(
       loadConfig({ readConfigFile: async () => '[[rules]]\npath = "src/**"\n' }),
-    ).rejects.toThrow(/rebot\.toml/)
+    ).rejects.toThrow(/revoid\.toml/)
   })
 
   test("returns an empty config when the file is absent", async () => {
@@ -47,13 +47,13 @@ describe("loadConfig", () => {
   test("throws on a schema-invalid value", async () => {
     await expect(
       loadConfig({ readConfigFile: async () => 'context = "yes"\n' }),
-    ).rejects.toThrow(/rebot\.toml/)
+    ).rejects.toThrow(/revoid\.toml/)
   })
 
   test("throws on a negative guardrail", async () => {
     await expect(
       loadConfig({ readConfigFile: async () => "[guardrails]\nmaxSteps = -1\n" }),
-    ).rejects.toThrow(/rebot\.toml/)
+    ).rejects.toThrow(/revoid\.toml/)
   })
 
   test("throws on malformed TOML", async () => {

@@ -14,9 +14,9 @@ export const DEFAULT_MAX_STEPS = 8
 export const DEFAULT_TIMEOUT_MS = 120_000
 export const DEFAULT_MAX_OUTPUT_TOKENS = 8192
 
-// Go subscription model (no zen balance required). Override with --model or REBOT_MODEL.
+// Go subscription model (no zen balance required). Override with --model or REVOID_MODEL.
 export const DEFAULT_MODEL = "go/deepseek-v4-pro"
-export const MODEL_ENV = "REBOT_MODEL"
+export const MODEL_ENV = "REVOID_MODEL"
 
 type GenerateFn = (options: {
   model: LanguageModel

@@ -1,5 +1,5 @@
 import { parseDiffFiles } from "./diff"
-import type { NormalizedInput, RebotCommand } from "./types"
+import type { NormalizedInput, RevoidCommand } from "./types"
 
 type Language = "TypeScript/JavaScript" | "Go" | "Python" | "Rust" | "Ruby"
 
@@ -132,7 +132,7 @@ function matchedRules(input: NormalizedInput, rules: CustomRule[]): string {
 }
 
 export function buildPrompt(
-  command: RebotCommand,
+  command: RevoidCommand,
   input: NormalizedInput,
   options: BuildPromptOptions = {},
 ): string {
@@ -168,7 +168,7 @@ Untrusted input JSON:
 ${JSON.stringify(payload, null, 2)}`
 }
 
-function commandInstruction(command: RebotCommand): string {
+function commandInstruction(command: RevoidCommand): string {
   if (command === "describe") {
     return `You are generating a pull request description.
 Produce a concise summary, the PR type(s) (bugfix, enhancement, docs, tests, refactor, chore, other), suggested labels, the changed areas, a per-file walkthrough (path and what changed), notable implementation details, and suggested test focus.

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add `mise run compile` as the project command for compiling the `rebot` single binary.
+**Goal:** Add `mise run compile` as the project command for compiling the `revoid` single binary.
 
 **Architecture:** Rename `.mise.toml` to `mise.toml` and add a single mise task that delegates to the existing `bun run build` script. No package scripts or build output paths change.
 
@@ -28,7 +28,7 @@ Rename `.mise.toml` to `mise.toml` and make the file exactly:
 bun = "1.3.9"
 
 [tasks.compile]
-description = "Compile rebot into a single binary"
+description = "Compile revoid into a single binary"
 run = "bun run build"
 ```
 
@@ -48,7 +48,7 @@ Run:
 mise tasks
 ```
 
-Expected: output includes `compile` and `Compile rebot into a single binary`.
+Expected: output includes `compile` and `Compile revoid into a single binary`.
 
 - [ ] **Step 3: Run compile task**
 
@@ -63,7 +63,7 @@ Expected: succeeds and runs `bun run build`.
 Run:
 
 ```bash
-test -x ./rebot
+test -x ./revoid
 ```
 
 Expected: succeeds.
@@ -71,7 +71,7 @@ Expected: succeeds.
 Run:
 
 ```bash
-./rebot --version
+./revoid --version
 ```
 
 Expected: outputs `0.1.0`.
@@ -81,7 +81,7 @@ Expected: outputs `0.1.0`.
 Run:
 
 ```bash
-rm -f ./rebot
+rm -f ./revoid
 ```
 
 Expected: generated binary is removed and not committed.

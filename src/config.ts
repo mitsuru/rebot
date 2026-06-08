@@ -1,7 +1,7 @@
 import { join } from "node:path"
 import { z } from "zod"
 
-export const CONFIG_FILENAME = ".rebot.toml"
+export const CONFIG_FILENAME = ".revoid.toml"
 
 export const ruleSchema = z.object({
   path: z.string(),
@@ -9,7 +9,7 @@ export const ruleSchema = z.object({
   name: z.string().optional(),
 })
 
-export type RebotRule = z.infer<typeof ruleSchema>
+export type RevoidRule = z.infer<typeof ruleSchema>
 
 export const configSchema = z.object({
   model: z.string().optional(),
@@ -26,7 +26,7 @@ export const configSchema = z.object({
     .optional(),
 })
 
-export type RebotConfig = z.infer<typeof configSchema>
+export type RevoidConfig = z.infer<typeof configSchema>
 
 interface LoadConfigDeps {
   cwd?: string
@@ -35,7 +35,7 @@ interface LoadConfigDeps {
   parseToml?: (text: string) => unknown
 }
 
-export async function loadConfig(deps: LoadConfigDeps = {}): Promise<RebotConfig> {
+export async function loadConfig(deps: LoadConfigDeps = {}): Promise<RevoidConfig> {
   const cwd = deps.cwd ?? process.cwd()
   const read = deps.readConfigFile ?? defaultRead
   const parseToml = deps.parseToml ?? ((text: string) => Bun.TOML.parse(text))

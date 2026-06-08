@@ -1,4 +1,4 @@
-# rebot 作り込み設計（PR-Agent 参考）
+# revoid 作り込み設計（PR-Agent 参考）
 
 - 日付: 2026-06-08
 - 期限: 2026-07-17
@@ -6,7 +6,7 @@
 
 ## 背景 / 現状
 
-rebot は PR-Agent ライクな CLI の骨格ができている。
+revoid は PR-Agent ライクな CLI の骨格ができている。
 
 - コマンド: `describe` / `review` / `improve` / `all`
 - 入力: `--diff-file` / `--pr`(gh) / `--base` / 既定の `git diff`

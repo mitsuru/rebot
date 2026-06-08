@@ -17,7 +17,7 @@ test("top-level help includes commands and shared options", async () => {
 
   expect(code).toBe(0)
   expect(stderr).toEqual([])
-  expect(stdout.join("")).toContain("Usage: rebot [options] [command]")
+  expect(stdout.join("")).toContain("Usage: revoid [options] [command]")
   expect(stdout.join("")).toContain("describe")
   expect(stdout.join("")).toContain("review")
   expect(stdout.join("")).toContain("--diff-file <path>")
@@ -39,7 +39,7 @@ test("command help includes command description and shared options", async () =>
   })
 
   expect(code).toBe(0)
-  expect(stdout.join("")).toContain("Usage: rebot review [options]")
+  expect(stdout.join("")).toContain("Usage: revoid review [options]")
   expect(stdout.join("")).toContain("produce review findings")
   expect(stdout.join("")).toContain("--diff-file <path>")
   expect(stdout.join("")).toContain("--pr <number>")
@@ -418,7 +418,7 @@ test("runCli config prints the configuration reference and current config", asyn
 
   expect(code).toBe(0)
   const out = stdout.join("")
-  expect(out).toContain("rebot configuration")
+  expect(out).toContain("revoid configuration")
   expect(out).toContain("[[rules]]")
   expect(out).toContain("Current")
   expect(out).toContain("go/deepseek-v4-pro")

@@ -4,7 +4,7 @@ import { withContextGuidance } from "./prompts"
 import { renderResult } from "./render"
 import { resultSchemaFor } from "./schema"
 import { createContextTools } from "./tools"
-import type { RebotCommand } from "./types"
+import type { RevoidCommand } from "./types"
 
 export interface AnalyzeDeps extends RunModelObjectDeps {
   /** Repository root for context tools. Defaults to the current working directory. */
@@ -20,7 +20,7 @@ export interface AnalyzeDeps extends RunModelObjectDeps {
  * schema-validated structured result, then renders it to Markdown.
  */
 export async function analyze(
-  command: RebotCommand,
+  command: RevoidCommand,
   prompt: string,
   deps: AnalyzeDeps = {},
 ): Promise<string> {

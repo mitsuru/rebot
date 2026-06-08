@@ -1,14 +1,14 @@
-# rebot CLI Help Design
+# revoid CLI Help Design
 
 ## Summary
 
-Add first-class CLI help and version output to `rebot` using `commander`. The goal is to make the tool self-describing for humans and AI agents without expanding the feature scope beyond the existing `describe`, `review`, `improve`, and `all` workflows.
+Add first-class CLI help and version output to `revoid` using `commander`. The goal is to make the tool self-describing for humans and AI agents without expanding the feature scope beyond the existing `describe`, `review`, `improve`, and `all` workflows.
 
 ## Goals
 
-- Provide standard help output through `rebot --help`, `rebot -h`, and `rebot help`.
-- Provide command-specific help through `rebot <command> --help`, `rebot <command> -h`, and `rebot help <command>`.
-- Provide version output through `rebot --version` and `rebot -V`.
+- Provide standard help output through `revoid --help`, `revoid -h`, and `revoid help`.
+- Provide command-specific help through `revoid <command> --help`, `revoid <command> -h`, and `revoid help <command>`.
+- Provide version output through `revoid --version` and `revoid -V`.
 - Keep existing command behavior and input options intact.
 - Use a maintained CLI parser instead of growing custom parsing logic.
 - Document help and version usage in `README.md`.
@@ -26,33 +26,33 @@ Add first-class CLI help and version output to `rebot` using `commander`. The go
 Top-level help:
 
 ```bash
-rebot --help
-rebot -h
-rebot help
+revoid --help
+revoid -h
+revoid help
 ```
 
 Command help:
 
 ```bash
-rebot describe --help
-rebot review -h
-rebot help improve
+revoid describe --help
+revoid review -h
+revoid help improve
 ```
 
 Version:
 
 ```bash
-rebot --version
-rebot -V
+revoid --version
+revoid -V
 ```
 
 Commands:
 
 ```bash
-rebot describe [options]
-rebot review [options]
-rebot improve [options]
-rebot all [options]
+revoid describe [options]
+revoid review [options]
+revoid improve [options]
+revoid all [options]
 ```
 
 Shared options:
@@ -91,7 +91,7 @@ commander action
 
 - Help and version output go to stdout and return exit code `0`.
 - Unknown commands and unknown options use commander error handling and return non-zero.
-- Runtime errors from input collection or opencode execution keep the existing `rebot: <message>` stderr style where practical.
+- Runtime errors from input collection or opencode execution keep the existing `revoid: <message>` stderr style where practical.
 - Help/version paths must not call opencode or input collection.
 
 ## Testing
@@ -111,9 +111,9 @@ Existing tests for input collection, prompt construction, opencode runner, outpu
 Update `README.md` with a short Help section:
 
 ```bash
-rebot --help
-rebot review --help
-rebot --version
+revoid --help
+revoid review --help
+revoid --version
 ```
 
 The README should continue to document commands, input source precedence, and build instructions.

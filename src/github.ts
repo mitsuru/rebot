@@ -3,7 +3,7 @@ import { execCommand, type ExecCommand } from "./exec"
 import type { ReviewFinding } from "./schema"
 
 export function commentMarker(command: string): string {
-  return `<!-- rebot:${command} -->`
+  return `<!-- revoid:${command} -->`
 }
 
 interface PostCommentDeps {
@@ -121,7 +121,7 @@ export async function postReview(
 async function defaultWriteTemp(content: string): Promise<string> {
   const { tmpdir } = await import("node:os")
   const { join } = await import("node:path")
-  const path = join(tmpdir(), `rebot-review-${content.length}.json`)
+  const path = join(tmpdir(), `revoid-review-${content.length}.json`)
   await Bun.write(path, content)
   return path
 }

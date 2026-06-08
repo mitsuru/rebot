@@ -38,7 +38,7 @@ test("runModel uses DEFAULT_MODEL when no model is provided", async () => {
   expect(usedId).toBe(DEFAULT_MODEL)
 })
 
-test("runModel resolves model id: deps.model > REBOT_MODEL env > DEFAULT_MODEL", async () => {
+test("runModel resolves model id: deps.model > REVOID_MODEL env > DEFAULT_MODEL", async () => {
   const ids: string[] = []
   const resolveModel = async (id: string) => {
     ids.push(id)
@@ -46,9 +46,9 @@ test("runModel resolves model id: deps.model > REBOT_MODEL env > DEFAULT_MODEL",
   }
   const generate = async () => ({ text: "x" })
 
-  await runModel("p", { resolveModel, generate, env: { REBOT_MODEL: "env-model" } })
+  await runModel("p", { resolveModel, generate, env: { REVOID_MODEL: "env-model" } })
   await runModel("p", { resolveModel, generate, env: {} })
-  await runModel("p", { model: "explicit", resolveModel, generate, env: { REBOT_MODEL: "env-model" } })
+  await runModel("p", { model: "explicit", resolveModel, generate, env: { REVOID_MODEL: "env-model" } })
 
   expect(ids).toEqual(["env-model", DEFAULT_MODEL, "explicit"])
 })

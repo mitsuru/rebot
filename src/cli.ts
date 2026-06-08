@@ -2,7 +2,7 @@
 import { Command, CommanderError, InvalidArgumentError } from "commander"
 import { analyze as defaultAnalyze } from "./analyze"
 import { ask as defaultAsk } from "./ask"
-import { CONFIG_FILENAME, loadConfig as defaultLoadConfig, type RebotConfig } from "./config"
+import { CONFIG_FILENAME, loadConfig as defaultLoadConfig, type RevoidConfig } from "./config"
 import { configReference, configReferenceData } from "./configref"
 import {
   buildReviewComments,
@@ -18,7 +18,7 @@ import { formatMarkdown } from "./output"
 import { buildAskPrompt, buildPrompt } from "./prompts"
 import { renderResult } from "./render"
 import type { ReviewFinding } from "./schema"
-import type { CliOptions, NormalizedInput, PullRequestMetadata, RebotCommand } from "./types"
+import type { CliOptions, NormalizedInput, PullRequestMetadata, RevoidCommand } from "./types"
 
 type RunCliInput = Omit<NormalizedInput, "base" | "diffFile" | "pr"> & {
   base?: string | undefined
@@ -28,9 +28,9 @@ type RunCliInput = Omit<NormalizedInput, "base" | "diffFile" | "pr"> & {
 
 interface RunCliDeps {
   collectInput?: (options: CliOptions) => Promise<RunCliInput>
-  analyze?: (command: RebotCommand, prompt: string, options?: RunOptions) => Promise<string>
+  analyze?: (command: RevoidCommand, prompt: string, options?: RunOptions) => Promise<string>
   ask?: (prompt: string, options?: RunOptions) => Promise<string>
-  loadConfig?: () => Promise<RebotConfig>
+  loadConfig?: () => Promise<RevoidConfig>
   postComment?: (opts: { pr: number; command: string; body: string }) => Promise<PostCommentResult>
   postReview?: (opts: { pr: number; comments: ReviewComment[] }) => Promise<{ count: number }>
   writeStdout?: (text: string) => void
@@ -73,7 +73,7 @@ function addSharedOptions(command: Command): Command {
 }
 
 async function postInlineComments(
-  command: RebotCommand,
+  command: RevoidCommand,
   result: unknown,
   diff: string,
   pr: number,
@@ -103,7 +103,7 @@ function applyDiffBudget(
 
 function resolveRunOptions(
   cliOptions: CliOptions,
-  config: RebotConfig,
+  config: RevoidConfig,
   env: Record<string, string | undefined>,
 ): RunOptions {
   const envModel = env[MODEL_ENV]?.trim() || undefined
@@ -119,7 +119,7 @@ function resolveRunOptions(
   return options
 }
 
-const commands: Array<{ name: RebotCommand; description: string }> = [
+const commands: Array<{ name: RevoidCommand; description: string }> = [
   { name: "describe", description: "produce a pull request description" },
   { name: "review", description: "produce review findings" },
   { name: "improve", description: "produce improvement suggestions" },
@@ -163,7 +163,7 @@ export function createProgram(deps: RunCliDeps = {}): Command {
   }
 
   const program = new Command()
-    .name("rebot")
+    .name("revoid")
     .version("0.1.0")
     .addHelpText(
       "after",
@@ -271,7 +271,7 @@ export async function runCli(args: string[], deps: RunCliDeps = {}): Promise<num
     }
 
     const message = error instanceof Error ? error.message : String(error)
-    writeStderr(`rebot: ${message}\n`)
+    writeStderr(`revoid: ${message}\n`)
     return 1
   }
 }
@@ -285,7 +285,7 @@ function parsePositiveInteger(value: string): number {
 }
 
 function normalizeCliOptions(
-  command: RebotCommand,
+  command: RevoidCommand,
   options: { diffFile?: string; pr?: number; base?: string; model?: string; context?: boolean },
 ): CliOptions {
   const cliOptions: CliOptions = { command, context: options.context ?? true }

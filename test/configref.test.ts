@@ -23,7 +23,7 @@ describe("configReferenceData", () => {
 describe("configReference", () => {
   test("renders a readable reference with the rules format and an example", () => {
     const md = configReference()
-    expect(md).toContain(".rebot.toml")
+    expect(md).toContain(".revoid.toml")
     expect(md).toContain("model")
     expect(md).toContain("rules")
     expect(md).toContain("[[rules]]")

@@ -1,4 +1,4 @@
-export type RebotCommand = "describe" | "review" | "improve" | "all" | "changelog" | "labels"
+export type RevoidCommand = "describe" | "review" | "improve" | "all" | "changelog" | "labels"
 
 export type InputSource = "diff-file" | "github-pr" | "git-base" | "git-worktree"
 
@@ -13,7 +13,7 @@ export interface PullRequestMetadata {
 }
 
 export interface NormalizedInput {
-  command: RebotCommand
+  command: RevoidCommand
   source: InputSource
   diff: string
   pr?: PullRequestMetadata
@@ -22,7 +22,7 @@ export interface NormalizedInput {
 }
 
 export interface CliOptions {
-  command: RebotCommand
+  command: RevoidCommand
   pr?: number
   base?: string
   diffFile?: string

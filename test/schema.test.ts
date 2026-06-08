@@ -198,7 +198,7 @@ describe("changelogResultSchema", () => {
   test("parses changelog entries by category", () => {
     const parsed = changelogResultSchema.parse({
       entries: [
-        { type: "added", description: "rebot ask command" },
+        { type: "added", description: "revoid ask command" },
         { type: "fixed", description: "off-by-one in parser" },
       ],
     })

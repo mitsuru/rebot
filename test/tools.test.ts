@@ -7,10 +7,10 @@ import { createContextTools, grepRepo, readFileContent } from "../src/tools"
 let root: string
 
 beforeAll(() => {
-  root = mkdtempSync(join(tmpdir(), "rebot-tools-"))
+  root = mkdtempSync(join(tmpdir(), "revoid-tools-"))
   mkdirSync(join(root, "src"))
   writeFileSync(join(root, "src", "math.ts"), "export function add(a: number, b: number) {\n  return a - b\n}\n")
-  writeFileSync(join(root, "src", "util.ts"), "export const NAME = 'rebot'\n")
+  writeFileSync(join(root, "src", "util.ts"), "export const NAME = 'revoid'\n")
   mkdirSync(join(root, "node_modules", "pkg"), { recursive: true })
   writeFileSync(join(root, "node_modules", "pkg", "index.js"), "export const add = 1\n")
 })

@@ -15,7 +15,7 @@ function fakeExec(handlers: (call: Call) => string) {
 
 describe("commentMarker", () => {
   test("is command-specific and HTML-hidden", () => {
-    expect(commentMarker("review")).toBe("<!-- rebot:review -->")
+    expect(commentMarker("review")).toBe("<!-- revoid:review -->")
   })
 })
 
@@ -35,7 +35,7 @@ describe("postComment", () => {
     const post = calls.find((c) => c.args.includes("POST"))
     expect(post?.args.join(" ")).toContain("repos/acme/repo/issues/7/comments")
     const bodyArg = post?.args.find((a) => a.startsWith("body="))
-    expect(bodyArg).toContain("<!-- rebot:review -->")
+    expect(bodyArg).toContain("<!-- revoid:review -->")
   })
 
   test("updates the existing marked comment instead of creating a duplicate", async () => {
@@ -44,7 +44,7 @@ describe("postComment", () => {
       if (args[0] === "api" && args.includes("--paginate")) {
         return JSON.stringify([
           { id: 1, body: "unrelated" },
-          { id: 42, body: "old result\n<!-- rebot:review -->" },
+          { id: 42, body: "old result\n<!-- revoid:review -->" },
         ])
       }
       if (args.includes("PATCH")) return '{"id":42,"html_url":"https://x/42"}'

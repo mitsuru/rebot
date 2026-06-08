@@ -1,4 +1,4 @@
-name: rebot review
+name: revoid review
 
 on:
   pull_request:
@@ -19,10 +19,10 @@ jobs:
         with:
           bun-version: 1.3.9
       - run: bun install --frozen-lockfile
-      - name: rebot review
+      - name: revoid review
         env:
           # Create this repository secret with your opencode zen API key.
-          REBOT_ZEN_API_KEY: ${{ secrets.REBOT_ZEN_API_KEY }}
+          REVOID_ZEN_API_KEY: ${{ secrets.REVOID_ZEN_API_KEY }}
           # gh reads GH_TOKEN automatically; the default token can comment on PRs.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bun run src/cli.ts review --pr ${{ github.event.pull_request.number }} --comment
