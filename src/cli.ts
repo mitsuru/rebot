@@ -22,6 +22,7 @@ import { formatMarkdown } from "./output"
 import { buildAskPrompt, buildPrompt } from "./prompts"
 import { renderResult } from "./render"
 import type { ReviewFinding } from "./schema"
+import { type SetupOptions, runSetup as defaultRunSetup } from "./setup"
 import type { CliOptions, NormalizedInput, PullRequestMetadata, RevoidCommand } from "./types"
 
 type RunCliInput = Omit<NormalizedInput, "base" | "diffFile" | "pr"> & {
@@ -40,6 +41,7 @@ interface RunCliDeps {
   writeStdout?: (text: string) => void
   writeStderr?: (text: string) => void
   writeFile?: (path: string, content: string) => Promise<void>
+  runSetup?: (options: SetupOptions) => Promise<unknown>
 }
 
 interface RunOptions {
@@ -141,6 +143,7 @@ export function createProgram(deps: RunCliDeps = {}): Command {
   const postReview = deps.postReview ?? ((opts) => defaultPostReview(opts))
   const writeStdout = deps.writeStdout ?? ((text: string) => process.stdout.write(text))
   const writeStderr = deps.writeStderr ?? ((text: string) => process.stderr.write(text))
+  const runSetup = deps.runSetup ?? ((options: SetupOptions) => defaultRunSetup(options))
   const writeFile =
     deps.writeFile ??
     (async (path: string, content: string) => {
@@ -261,7 +264,37 @@ Shared Options:
       writeStdout(formatMarkdown(body))
     })
 
+  program
+    .command("setup")
+    .description("register a GitHub App (manifest flow) and wire up Actions secrets")
+    .option("--org <org>", "create the App under an organization (default: current repo owner)")
+    .option("--repo <owner/repo>", "target repository (default: current repository)")
+    .option("--name <name>", "App name (default: revoid; editable in the browser)")
+    .option("--port <number>", "local callback server port (default: ephemeral)", parsePositiveInteger)
+    .option("--public", "make the App public/installable by others (default: private)")
+    .option("--no-browser", "do not auto-open the browser; print the URLs instead")
+    .action(async (options: SetupCliOptions) => {
+      const setupOptions: SetupOptions = {}
+      if (options.org) setupOptions.org = options.org
+      if (options.repo) setupOptions.repo = options.repo
+      if (options.name) setupOptions.name = options.name
+      if (options.port !== undefined) setupOptions.port = options.port
+      if (options.public) setupOptions.public = true
+      if (options.browser === false) setupOptions.noBrowser = true
+      await runSetup(setupOptions)
+    })
+
   return program
+}
+
+interface SetupCliOptions {
+  org?: string
+  repo?: string
+  name?: string
+  port?: number
+  public?: boolean
+  // commander stores --no-browser as `browser: false`
+  browser?: boolean
 }
 
 export async function runCli(args: string[], deps: RunCliDeps = {}): Promise<number> {
