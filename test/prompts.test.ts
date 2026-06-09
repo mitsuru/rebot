@@ -101,6 +101,8 @@ test("buildPrompt injects the response-language instruction in the trusted regio
   // enum/label values must be preserved so client-side zod validation does not fail
   expect(prompt.toLowerCase()).toContain("severity")
   expect(prompt.toLowerCase()).toContain("do not translate")
+  // the language value is quoted to reduce instruction bleed (defense in depth)
+  expect(prompt).toContain('"Japanese"')
 
   // the instruction must sit BEFORE the untrusted JSON block, in the trusted
   // instruction region — otherwise the model is told to ignore it as data

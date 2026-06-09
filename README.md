@@ -155,7 +155,12 @@ findings are off by default; enable them with `--micro-opt` or
 Set `language` (or `--language <lang>`) to have revoid write its prose —
 finding descriptions, summaries, suggestions — in another language such as
 Japanese. Code, identifiers, and the fixed severity/category labels stay in
-English.
+English. The value may contain only letters, spaces, and hyphens (1–50
+characters), so non-ASCII names like `日本語` or `Brazilian Portuguese` work
+while control characters and punctuation are rejected — `language` is
+interpolated into the prompt, and in CI the PR's own `.revoid.toml` is in
+effect, so the allowlist keeps a malicious config from injecting instructions.
+The value is also quoted in the prompt as defense in depth.
 
 Path-based rules attach review guidance to files matching a glob:
 
