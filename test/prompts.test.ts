@@ -127,6 +127,11 @@ test("buildAskPrompt injects the response-language instruction", () => {
   expect(untrustedIdx).toBeGreaterThan(langIdx)
 })
 
+test("buildAskPrompt omits the language instruction by default", () => {
+  const prompt = buildAskPrompt("What changed?", input)
+  expect(prompt).not.toContain("Write your answer in")
+})
+
 test("describe prompt does not inject language checks", () => {
   const tsDiff = "diff --git a/x.ts b/x.ts\n--- a/x.ts\n+++ b/x.ts\n@@ -0,0 +1,1 @@\n+const x = 1\n"
   const prompt = buildPrompt("describe", { command: "describe", source: "diff-file", diff: tsDiff })

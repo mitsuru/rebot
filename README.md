@@ -155,12 +155,11 @@ findings are off by default; enable them with `--micro-opt` or
 Set `language` (or `--language <lang>`) to have revoid write its prose —
 finding descriptions, summaries, suggestions — in another language such as
 Japanese. Code, identifiers, and the fixed severity/category labels stay in
-English. The value may contain only letters, spaces, and hyphens (1–50
-characters), so non-ASCII names like `日本語` or `Brazilian Portuguese` work
-while control characters and punctuation are rejected — `language` is
-interpolated into the prompt, and in CI the PR's own `.revoid.toml` is in
-effect, so the allowlist keeps a malicious config from injecting instructions.
-The value is also quoted in the prompt as defense in depth.
+English. The value may contain only Unicode letters (including accented and
+combining marks), spaces, and hyphens (1–50 characters), so names like
+`日本語`, `Français`, or `Brazilian Portuguese` work while control characters
+and punctuation are rejected. See [Configuration trust model](#configuration-trust-model)
+for why this is validated.
 
 Path-based rules attach review guidance to files matching a glob:
 
@@ -177,6 +176,24 @@ machine-readable form an agent can consume).
 Diffs larger than `maxDiffTokens` are reduced before review: noise files
 (lockfiles, build output, snapshots) are dropped first, then remaining files are
 kept until the budget is reached, and the omitted files are noted in the prompt.
+
+### Configuration trust model
+
+`.revoid.toml` is **trusted configuration**, owned by the repository. Several of
+its values are interpolated into the trusted region of the model prompt — most
+notably `rules[].guidance` (free-form review instructions, by design) and
+`language`. Anyone who can write that file can therefore steer the model. The
+`language` allowlist (letters/marks/spaces/hyphens, length-capped, quoted in the
+prompt) is hardening — it removes line-break and control-character vectors — but
+it is **not** a substitute for the trust boundary, and `rules[].guidance` is not
+sanitized at all because it is meant to carry natural-language instructions.
+
+The practical consequence is for CI. The bundled workflow checks out the pull
+request, so on a fork-based PR the `.revoid.toml` under review is attacker-
+controlled. If you run revoid on untrusted PRs, read the config from a trusted
+ref (e.g. the base branch) rather than the PR head, or restrict the workflow to
+PRs from collaborators. Do not rely on field-level validation alone to contain a
+malicious `.revoid.toml`.
 
 ## Output
 
