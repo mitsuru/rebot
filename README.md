@@ -190,3 +190,27 @@ that land on changed lines are also posted as inline review comments.
 `.github/workflows/revoid.yml` runs `revoid review --pr <n> --comment` on every
 pull request. Add a `REVOID_ZEN_API_KEY` repository secret; the default
 `GITHUB_TOKEN` lets `gh` post comments (`pull-requests: write`).
+
+### Post as `revoid[bot]` (GitHub App)
+
+By default, comments come from `github-actions[bot]`. To post under a `revoid[bot]`
+identity, run a one-time setup that registers a GitHub App via the manifest flow:
+
+```bash
+revoid setup            # add --org <org> to register under an organization
+```
+
+`setup` starts a local callback server, opens the browser to GitHub's App
+creation page (pre-filled with the right permissions: `pull_requests: write`,
+`contents: read`, `metadata: read`), then:
+
+- exchanges the temporary code for the App's credentials,
+- stores `REVOID_APP_ID` and `REVOID_APP_PRIVATE_KEY` as Actions secrets (the
+  private key is piped to `gh secret set` and never written to disk),
+- rewrites `.github/workflows/revoid.yml` to mint an App token with
+  [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token),
+- opens the App install page so you can install it on the repository.
+
+On a headless/SSH host, the server also prints a LAN URL you can open from
+another device, and `--no-browser` skips auto-opening entirely. The flow always
+registers a new App, so re-running `setup` warns before creating a duplicate.
