@@ -189,11 +189,10 @@ describe("runSetup", () => {
     const appId = calls.find((c) => c.args[0] === "secret" && c.args[2] === "REVOID_APP_ID")
     expect(appId?.args).toContain("99")
 
-    // The private key is piped via stdin, never passed as an argument.
+    // The private key is piped via stdin (no --body flag), never passed as an argument.
     const pem = calls.find((c) => c.args[2] === "REVOID_APP_PRIVATE_KEY")
     expect(pem?.input).toBe("-----PEM-----")
-    expect(pem?.args).toContain("--body-file")
-    expect(pem?.args).toContain("-")
+    expect(pem?.args).not.toContain("--body")
     expect(calls.some((c) => c.args.includes("-----PEM-----"))).toBe(false)
 
     expect(getWritten()?.path).toBe(".github/workflows/revoid.yml")

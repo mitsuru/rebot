@@ -288,11 +288,9 @@ export async function runSetup(options: SetupOptions, deps: SetupDeps = {}): Pro
   // 8. Store the credentials as Actions secrets (private key piped, never on disk).
   const target = secretTarget(options)
   await exec("gh", ["secret", "set", "REVOID_APP_ID", ...target, "--body", String(conversion.id)])
-  await execInput(
-    "gh",
-    ["secret", "set", "REVOID_APP_PRIVATE_KEY", ...target, "--body-file", "-"],
-    conversion.pem,
-  )
+  // No --body flag: gh secret set reads the value from stdin, so the private key
+  // is piped and never appears in argv or on disk.
+  await execInput("gh", ["secret", "set", "REVOID_APP_PRIVATE_KEY", ...target], conversion.pem)
   log("Set secrets REVOID_APP_ID and REVOID_APP_PRIVATE_KEY.")
 
   if (!(await zenKeyPresent(exec, target))) {
@@ -346,9 +344,18 @@ async function defaultStartServer(opts: {
   actionUrl: string
 }): Promise<ServerHandle> {
   let resolveCode: (value: { code: string }) => void
-  const done = new Promise<{ code: string }>((resolve) => {
+  let rejectCode: (reason: Error) => void
+  const done = new Promise<{ code: string }>((resolve, reject) => {
     resolveCode = resolve
+    rejectCode = reject
   })
+  // The manifest code is valid for an hour; give up well before that rather than
+  // hang forever if the browser step is abandoned.
+  const timeout = setTimeout(
+    () => rejectCode(new Error("timed out waiting for the GitHub App to be created")),
+    15 * 60 * 1000,
+  )
+  timeout.unref?.()
 
   const server = createServer((req, res) => {
     const host = req.headers.host ?? "127.0.0.1"
@@ -364,6 +371,7 @@ async function defaultStartServer(opts: {
       }
       res.writeHead(200, { "content-type": "text/html" })
       res.end(renderSuccessPage())
+      clearTimeout(timeout)
       resolveCode({ code })
       return
     }
