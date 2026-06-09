@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url"
 import { Command, CommanderError, InvalidArgumentError } from "commander"
 import { analyze as defaultAnalyze } from "./analyze"
 import { ask as defaultAsk } from "./ask"
-import { CONFIG_FILENAME, loadConfig as defaultLoadConfig, type RevoidConfig } from "./config"
+import { CONFIG_FILENAME, languageSchema, loadConfig as defaultLoadConfig, type RevoidConfig } from "./config"
 import { configReference, configReferenceData } from "./configref"
 import {
   buildReviewComments,
@@ -72,7 +72,11 @@ function addSharedOptions(command: Command): Command {
     .option("--pr <number>", "read diff from a GitHub pull request", parsePositiveInteger)
     .option("--base <ref>", "diff the current worktree against a base ref")
     .option("--model <id>", `model id, optional go/ or zen/ prefix (default: ${DEFAULT_MODEL}; or set ${MODEL_ENV})`)
-    .option("--language <lang>", "language for the generated prose (e.g. Japanese; default: English)")
+    .option(
+      "--language <lang>",
+      "language for the generated prose (e.g. Japanese; default: English)",
+      parseLanguage,
+    )
     .option("--no-context", "disable repository context tools (read_file/grep)")
     .option("--json", "output raw JSON instead of Markdown")
     .option("--output <file>", "write output to a file instead of stdout")
@@ -333,6 +337,14 @@ function parsePositiveInteger(value: string): number {
     throw new InvalidArgumentError("must be a positive integer")
   }
   return parsed
+}
+
+function parseLanguage(value: string): string {
+  const result = languageSchema.safeParse(value)
+  if (!result.success) {
+    throw new InvalidArgumentError(result.error.issues[0]?.message ?? "invalid language")
+  }
+  return result.data
 }
 
 function normalizeCliOptions(

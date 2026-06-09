@@ -135,7 +135,7 @@ export interface BuildPromptOptions {
  * severity-ordered rendering).
  */
 function languageInstruction(language: string): string {
-  return `\n\nWrite all natural-language prose — finding titles, descriptions, summaries, suggestions, and any other explanatory text — in ${language}. Keep code, identifiers, file paths, and fixed enum field values (such as severity and category) in English exactly as the schema specifies; do not translate them.`
+  return `\n\nWrite all natural-language prose — descriptions, summaries, and any other explanatory text — in ${language}. Keep code, identifiers, file paths, and fixed enum field values (such as severity, category, or type) in English exactly as the schema specifies; do not translate them.`
 }
 
 function matchedRules(input: NormalizedInput, rules: CustomRule[]): string {

@@ -110,6 +110,13 @@ test("buildPrompt injects the response-language instruction in the trusted regio
   expect(untrustedIdx).toBeGreaterThan(langIdx)
 })
 
+test("language instruction is generic, not review-specific", () => {
+  // applied to describe (no findings); the wording must not assume review output
+  const prompt = buildPrompt("describe", { ...input, command: "describe" }, { language: "Japanese" })
+  expect(prompt).toContain("Write all natural-language prose")
+  expect(prompt).not.toContain("finding titles")
+})
+
 test("buildAskPrompt injects the response-language instruction", () => {
   const prompt = buildAskPrompt("What changed?", input, { language: "日本語" })
   expect(prompt).toContain("日本語")

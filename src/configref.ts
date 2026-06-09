@@ -45,7 +45,7 @@ export function configReferenceData(): ConfigReferenceData {
       },
       {
         key: "language",
-        type: "string",
+        type: "string (1-50 chars, no line breaks)",
         default: "English",
         description:
           "Language for the model's generated prose (e.g. Japanese). Enum values and code are kept as-is.",
